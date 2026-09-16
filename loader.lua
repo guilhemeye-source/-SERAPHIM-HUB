@@ -525,6 +525,73 @@ local function styleButton(
 end
 
 --==================================================
+-- PERSONAGEM DECORATIVO 3D
+--==================================================
+
+local function createCharacterPreview(parent, position, size)
+    local viewport = Instance.new("ViewportFrame")
+    viewport.Name = "CharacterPreview"
+    viewport.Size = size
+    viewport.Position = position
+    viewport.BackgroundColor3 = Color3.fromRGB(29, 10, 37)
+    viewport.BackgroundTransparency = 0.12
+    viewport.BorderSizePixel = 0
+    viewport.Ambient = Color3.fromRGB(190, 130, 255)
+    viewport.LightColor = Color3.fromRGB(255, 180, 240)
+    viewport.LightDirection = Vector3.new(-1, -1, -1)
+    viewport.ZIndex = 4
+    viewport.Parent = parent
+    addCorner(viewport, 14)
+    addStroke(viewport, Color3.fromRGB(255, 157, 226), 0.2, 1)
+
+    local world = Instance.new("WorldModel")
+    world.Parent = viewport
+
+    local model = Instance.new("Model")
+    model.Name = "TLXCharacter"
+    model.Parent = world
+
+    local function part(name, size3, pos, color, shape)
+        local p = Instance.new("Part")
+        p.Name = name
+        p.Size = size3
+        p.Position = pos
+        p.Anchored = true
+        p.CanCollide = false
+        p.Material = Enum.Material.Neon
+        p.Color = color
+        if shape then
+            p.Shape = shape
+        end
+        p.Parent = model
+        return p
+    end
+
+    local skin = Color3.fromRGB(255, 205, 190)
+    local outfit = Color3.fromRGB(126, 52, 172)
+    local accent = Color3.fromRGB(255, 83, 185)
+    local dark = Color3.fromRGB(24, 12, 37)
+
+    part("Torso", Vector3.new(1.45, 1.75, 0.75), Vector3.new(0, 1.75, 0), outfit)
+    part("Head", Vector3.new(1.35, 1.25, 1.1), Vector3.new(0, 3.35, 0), skin, Enum.PartType.Ball)
+    part("Hair", Vector3.new(1.48, 0.62, 1.16), Vector3.new(0, 3.92, -0.02), dark, Enum.PartType.Ball)
+    part("Visor", Vector3.new(1.05, 0.22, 0.12), Vector3.new(0, 3.42, -0.55), accent)
+    part("ArmL", Vector3.new(0.42, 1.55, 0.48), Vector3.new(-1.02, 1.82, 0), accent)
+    part("ArmR", Vector3.new(0.42, 1.55, 0.48), Vector3.new(1.02, 1.82, 0), accent)
+    part("LegL", Vector3.new(0.52, 1.65, 0.58), Vector3.new(-0.42, 0.05, 0), dark)
+    part("LegR", Vector3.new(0.52, 1.65, 0.58), Vector3.new(0.42, 0.05, 0), dark)
+    part("Badge", Vector3.new(0.36, 0.36, 0.08), Vector3.new(0, 2.0, -0.42), accent, Enum.PartType.Ball)
+
+    local camera = Instance.new("Camera")
+    camera.FieldOfView = 32
+    camera.CFrame = CFrame.new(Vector3.new(5, 3.1, 8), Vector3.new(0, 2.05, 0))
+    camera.Parent = viewport
+    viewport.CurrentCamera = camera
+
+    return viewport
+end
+
+--==================================================
 -- KEY GUI
 --==================================================
 
@@ -595,7 +662,7 @@ addGradient(
 local KeyTitle = Instance.new("TextLabel")
 
 KeyTitle.Size =
-    UDim2.new(1, -40, 0, 28)
+    UDim2.new(1, -120, 0, 28)
 
 KeyTitle.Position =
     UDim2.fromOffset(20, 12)
@@ -610,10 +677,12 @@ KeyTitle.TextXAlignment =
 
 KeyTitle.Parent = KeyTop
 
+createCharacterPreview(KeyTop, UDim2.new(1, -82, 0, 7), UDim2.fromOffset(68, 58))
+
 local KeySubtitle = Instance.new("TextLabel")
 
 KeySubtitle.Size =
-    UDim2.new(1, -40, 0, 18)
+    UDim2.new(1, -120, 0, 18)
 
 KeySubtitle.Position =
     UDim2.fromOffset(20, 40)
@@ -776,7 +845,7 @@ Enter.MouseButton1Click:Connect(function()
         Color3.fromRGB(10, 8, 12)
 
     ArtLayer.BorderSizePixel = 0
-    ArtLayer.ZIndex = 1
+    ArtLayer.ZIndex = 0
     ArtLayer.Parent = Main
 
     addCorner(ArtLayer, 20)
@@ -870,7 +939,7 @@ Enter.MouseButton1Click:Connect(function()
     local Title = Instance.new("TextLabel")
 
     Title.Size =
-        UDim2.new(1, -80, 0, 30)
+        UDim2.new(1, -178, 0, 30)
 
     Title.Position =
         UDim2.fromOffset(22, 17)
@@ -885,10 +954,12 @@ Enter.MouseButton1Click:Connect(function()
 
     Title.Parent = Header
 
+    createCharacterPreview(Header, UDim2.new(1, -126, 0, 12), UDim2.fromOffset(62, 68))
+
     local Subtitle = Instance.new("TextLabel")
 
     Subtitle.Size =
-        UDim2.new(1, -80, 0, 18)
+        UDim2.new(1, -178, 0, 18)
 
     Subtitle.Position =
         UDim2.fromOffset(22, 51)
