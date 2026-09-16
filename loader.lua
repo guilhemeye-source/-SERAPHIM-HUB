@@ -1,4 +1,4 @@
---// TLX MM2 COPY HUB
+--// SERAPHIM HUB — MM2
 --// ESP + AIM ASSIST + NOCLIP + INFINITE JUMP + KEY
 
 local Players = game:GetService("Players")
@@ -26,29 +26,15 @@ local ESP = {}
 
 local function getRole(player)
     local backpack = player:FindFirstChild("Backpack")
-
     if backpack then
-        if backpack:FindFirstChild("Knife") then
-            return "Murderer"
-        end
-
-        if backpack:FindFirstChild("Gun") then
-            return "Sheriff"
-        end
+        if backpack:FindFirstChild("Knife") then return "Murderer" end
+        if backpack:FindFirstChild("Gun") then return "Sheriff" end
     end
-
     local character = player.Character
-
     if character then
-        if character:FindFirstChild("Knife") then
-            return "Murderer"
-        end
-
-        if character:FindFirstChild("Gun") then
-            return "Sheriff"
-        end
+        if character:FindFirstChild("Knife") then return "Murderer" end
+        if character:FindFirstChild("Gun") then return "Sheriff" end
     end
-
     return "Innocent"
 end
 
@@ -64,53 +50,32 @@ local function removeESP(player)
 end
 
 local function updateESP(player)
-    if player == LocalPlayer then
-        return
-    end
-
+    if player == LocalPlayer then return end
     local character = player.Character
-
-    if not character then
-        removeESP(player)
-        return
-    end
-
+    if not character then removeESP(player) return end
     if not ESP_ENABLED then
-        if ESP[player] then
-            ESP[player].Enabled = false
-        end
+        if ESP[player] then ESP[player].Enabled = false end
         return
     end
-
     local highlight = ESP[player]
-
     if not highlight or highlight.Parent ~= character then
-        if highlight then
-            highlight:Destroy()
-        end
-
+        if highlight then highlight:Destroy() end
         highlight = Instance.new("Highlight")
-        highlight.Name = "TLXRoleESP"
+        highlight.Name = "SeraphimESP"
         highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
         highlight.FillTransparency = 0.45
         highlight.OutlineTransparency = 0
         highlight.Parent = character
-
         ESP[player] = highlight
     end
-
     local role = getRole(player)
-
     highlight.Enabled = true
-
     if role == "Murderer" then
         highlight.FillColor = Color3.fromRGB(239, 68, 68)
         highlight.OutlineColor = Color3.fromRGB(248, 113, 113)
-
     elseif role == "Sheriff" then
         highlight.FillColor = Color3.fromRGB(59, 130, 246)
         highlight.OutlineColor = Color3.fromRGB(96, 165, 250)
-
     else
         highlight.FillColor = Color3.fromRGB(34, 197, 94)
         highlight.OutlineColor = Color3.fromRGB(74, 222, 128)
@@ -125,39 +90,22 @@ task.spawn(function()
     end
 end)
 
-Players.PlayerRemoving:Connect(function(player)
-    removeESP(player)
-end)
+Players.PlayerRemoving:Connect(removeESP)
 
 local function setupPlayer(player)
-    if player == LocalPlayer then
-        return
-    end
-
+    if player == LocalPlayer then return end
     player.CharacterAdded:Connect(function()
         removeESP(player)
-
         task.wait(0.5)
-
         updateESP(player)
     end)
-
-    player.CharacterRemoving:Connect(function()
-        removeESP(player)
-    end)
-
+    player.CharacterRemoving:Connect(removeESP)
     if player.Character then
-        task.spawn(function()
-            task.wait(0.5)
-            updateESP(player)
-        end)
+        task.spawn(function() task.wait(0.5) updateESP(player) end)
     end
 end
 
-for _, player in ipairs(Players:GetPlayers()) do
-    setupPlayer(player)
-end
-
+for _, p in ipairs(Players:GetPlayers()) do setupPlayer(p) end
 Players.PlayerAdded:Connect(setupPlayer)
 
 --==================================================
@@ -166,32 +114,19 @@ Players.PlayerAdded:Connect(setupPlayer)
 
 local function setNoclip(enabled)
     NOCLIP_ENABLED = enabled
-
-    local character = LocalPlayer.Character
-
-    if not character then
-        return
-    end
-
-    for _, part in ipairs(character:GetDescendants()) do
-        if part:IsA("BasePart") then
-            part.CanCollide = not enabled
-        end
+    local char = LocalPlayer.Character
+    if not char then return end
+    for _, d in ipairs(char:GetDescendants()) do
+        if d:IsA("BasePart") then d.CanCollide = not enabled end
     end
 end
 
 RunService.Stepped:Connect(function()
-    if not NOCLIP_ENABLED then
-        return
-    end
-
-    local character = LocalPlayer.Character
-
-    if character then
-        for _, part in ipairs(character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
+    if not NOCLIP_ENABLED then return end
+    local char = LocalPlayer.Character
+    if char then
+        for _, d in ipairs(char:GetDescendants()) do
+            if d:IsA("BasePart") then d.CanCollide = false end
         end
     end
 end)
@@ -201,19 +136,10 @@ end)
 --==================================================
 
 UserInputService.JumpRequest:Connect(function()
-    if not INFINITE_JUMP_ENABLED then
-        return
-    end
-
-    local character = LocalPlayer.Character
-    local humanoid = character and
-        character:FindFirstChildOfClass("Humanoid")
-
-    if humanoid then
-        humanoid:ChangeState(
-            Enum.HumanoidStateType.Jumping
-        )
-    end
+    if not INFINITE_JUMP_ENABLED then return end
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
 end)
 
 --==================================================
@@ -221,427 +147,206 @@ end)
 --==================================================
 
 local function getClosestTarget()
-    local closestTarget = nil
-    local closestDistance = AIM_FOV
-
-    local viewport = Camera.ViewportSize
-
-    local center = Vector2.new(
-        viewport.X / 2,
-        viewport.Y / 2
-    )
-
-    for _, player in ipairs(Players:GetPlayers()) do
-
-        if player ~= LocalPlayer and player.Character then
-
-            local humanoid =
-                player.Character:FindFirstChildOfClass("Humanoid")
-
-            local head =
-                player.Character:FindFirstChild("Head")
-
-            if humanoid
-                and humanoid.Health > 0
-                and head then
-
-                local screenPosition, visible =
-                    Camera:WorldToViewportPoint(
-                        head.Position
-                    )
-
-                if visible and screenPosition.Z > 0 then
-
-                    local targetPosition =
-                        Vector2.new(
-                            screenPosition.X,
-                            screenPosition.Y
-                        )
-
-                    local distance =
-                        (targetPosition - center).Magnitude
-
-                    if distance < closestDistance then
-                        closestDistance = distance
-                        closestTarget = head
-                    end
+    local closest, minDist = nil, AIM_FOV
+    local center = Camera.ViewportSize / 2
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character then
+            local hum = p.Character:FindFirstChildOfClass("Humanoid")
+            local head = p.Character:FindFirstChild("Head")
+            if hum and hum.Health > 0 and head then
+                local sp, vis = Camera:WorldToViewportPoint(head.Position)
+                if vis and sp.Z > 0 then
+                    local dist = (Vector2.new(sp.X, sp.Y) - center).Magnitude
+                    if dist < minDist then minDist = dist closest = head end
                 end
             end
         end
     end
-
-    return closestTarget
+    return closest
 end
 
 RunService.RenderStepped:Connect(function()
-    if not AIM_ENABLED then
-        return
-    end
-
+    if not AIM_ENABLED then return end
     local target = getClosestTarget()
-
-    if target then
-        Camera.CFrame = CFrame.lookAt(
-            Camera.CFrame.Position,
-            target.Position
-        )
-    end
+    if target then Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, target.Position) end
 end)
 
 --==================================================
--- CORES
+-- CORES — SERAPHIM THEME 🪽
 --==================================================
 
 local COLORS = {
-    Background = Color3.fromRGB(7, 7, 10),
-    Surface = Color3.fromRGB(18, 15, 20),
-    SurfaceLight = Color3.fromRGB(43, 21, 31),
+    Background    = Color3.fromRGB(12, 8, 20),
+    Surface       = Color3.fromRGB(26, 18, 44),
+    SurfaceLight  = Color3.fromRGB(55, 30, 92),
 
-    Accent = Color3.fromRGB(236, 72, 153),
-    AccentLight = Color3.fromRGB(236, 72, 153),
+    Accent        = Color3.fromRGB(139, 92, 246),   -- Roxo principal
+    AccentLight   = Color3.fromRGB(192, 165, 255), -- Roxo brilhante/neon
+    Glow          = Color3.fromRGB(216, 180, 255),
 
-    Text = Color3.fromRGB(248, 250, 252),
-    Muted = Color3.fromRGB(174, 139, 156),
+    Text          = Color3.fromRGB(248, 250, 252),
+    Muted         = Color3.fromRGB(179, 153, 212),
 
-    Success = Color3.fromRGB(34, 197, 94),
-    Danger = Color3.fromRGB(239, 68, 68)
+    Success       = Color3.fromRGB(34, 197, 94),
+    Danger        = Color3.fromRGB(239, 68, 68)
 }
 
 --==================================================
 -- FUNÇÕES DA INTERFACE
 --==================================================
 
-local function addCorner(instance, radius)
-    local corner = Instance.new("UICorner")
-
-    corner.CornerRadius =
-        UDim.new(0, radius)
-
-    corner.Parent = instance
-
-    return corner
+local function addCorner(inst, r)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, r)
+    c.Parent = inst
+    return c
 end
 
-local function addStroke(
-    instance,
-    color,
-    transparency,
-    thickness
-)
-    local stroke = Instance.new("UIStroke")
-
-    stroke.Color = color
-    stroke.Transparency = transparency or 0
-    stroke.Thickness = thickness or 1
-    stroke.ApplyStrokeMode =
-        Enum.ApplyStrokeMode.Border
-
-    stroke.Parent = instance
-
-    return stroke
+local function addStroke(inst, col, trans, thick)
+    local s = Instance.new("UIStroke")
+    s.Color = col
+    s.Transparency = trans or 0
+    s.Thickness = thick or 1
+    s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    s.Parent = inst
+    return s
 end
 
-local function addGradient(
-    instance,
-    colorA,
-    colorB,
-    rotation
-)
-    local gradient = Instance.new("UIGradient")
-
-    gradient.Color =
-        ColorSequence.new(colorA, colorB)
-
-    gradient.Rotation = rotation or 0
-
-    gradient.Parent = instance
-
-    return gradient
+local function addGradient(inst, a, b, rot)
+    local g = Instance.new("UIGradient")
+    g.Color = ColorSequence.new(a, b)
+    g.Rotation = rot or 0
+    g.Parent = inst
+    return g
 end
 
-local function addShadow(
-    parent,
-    size,
-    position
-)
-    local shadow = Instance.new("Frame")
-
-    shadow.Name = "Shadow"
-    shadow.Size = size
-    shadow.Position = position
-    shadow.BackgroundColor3 =
-        Color3.fromRGB(0, 0, 0)
-
-    shadow.BackgroundTransparency = 0.55
-    shadow.ZIndex = 0
-    shadow.Parent = parent
-
-    addCorner(shadow, 18)
-
-    return shadow
+local function addShadow(parent, size, pos)
+    local s = Instance.new("Frame")
+    s.Name = "Shadow"
+    s.Size = size s.Position = pos
+    s.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    s.BackgroundTransparency = 0.55
+    s.ZIndex = 0
+    s.Parent = parent
+    addCorner(s, 18)
+    return s
 end
 
-local function addHover(
-    button,
-    normalColor,
-    hoverColor
-)
-    button.MouseEnter:Connect(function()
-
-        TweenService:Create(
-            button,
-            TweenInfo.new(0.15),
-            {
-                BackgroundColor3 = hoverColor,
-                Size = UDim2.new(
-                    button.Size.X.Scale,
-                    button.Size.X.Offset,
-                    0,
-                    button.Size.Y.Offset + 2
-                )
-            }
-        ):Play()
-
+local function addHover(btn, norm, hov)
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.15), {
+            BackgroundColor3 = hov,
+            Size = UDim2.new(btn.Size.X.Scale, btn.Size.X.Offset, 0, btn.Size.Y.Offset + 2)
+        }):Play()
     end)
-
-    button.MouseLeave:Connect(function()
-
-        TweenService:Create(
-            button,
-            TweenInfo.new(0.15),
-            {
-                BackgroundColor3 = normalColor,
-                Size = UDim2.new(
-                    button.Size.X.Scale,
-                    button.Size.X.Offset,
-                    0,
-                    button.Size.Y.Offset - 2
-                )
-            }
-        ):Play()
-
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.15), {
+            BackgroundColor3 = norm,
+            Size = UDim2.new(btn.Size.X.Scale, btn.Size.X.Offset, 0, btn.Size.Y.Offset - 2)
+        }):Play()
     end)
 end
 
-local function styleButton(
-    button,
-    icon,
-    title,
-    description,
-    enabled
-)
-    button.Text = ""
-    button.AutoButtonColor = false
+local function styleButton(btn, icon, title, desc, enabled)
+    btn.Text = ""
+    btn.AutoButtonColor = false
+    btn.BackgroundColor3 = enabled and COLORS.SurfaceLight or COLORS.Surface
+    addCorner(btn, 12)
+    addStroke(btn, enabled and COLORS.Accent or Color3.fromRGB(75, 60, 110), 0.35, 1)
 
-    button.BackgroundColor3 =
-        enabled
-        and COLORS.SurfaceLight
-        or COLORS.Surface
+    local iconL = Instance.new("TextLabel")
+    iconL.Size = UDim2.fromOffset(34, 34)
+    iconL.Position = UDim2.fromOffset(12, 7)
+    iconL.BackgroundColor3 = enabled and COLORS.Accent or Color3.fromRGB(75, 60, 110)
+    iconL.Text = icon
+    iconL.TextColor3 = COLORS.Text
+    iconL.Font = Enum.Font.GothamBold
+    iconL.TextSize = 15
+    iconL.Parent = btn
+    addCorner(iconL, 9)
 
-    addCorner(button, 12)
+    local titleL = Instance.new("TextLabel")
+    titleL.Size = UDim2.new(1, -118, 0, 22)
+    titleL.Position = UDim2.fromOffset(58, 7)
+    titleL.BackgroundTransparency = 1
+    titleL.Text = title
+    titleL.TextColor3 = COLORS.Text
+    titleL.Font = Enum.Font.GothamBold
+    titleL.TextSize = 14
+    titleL.TextXAlignment = Enum.TextXAlignment.Left
+    titleL.Parent = btn
 
-    addStroke(
-        button,
-        enabled
-        and COLORS.Accent
-        or Color3.fromRGB(51, 65, 85),
-        0.35,
-        1
-    )
-
-    local iconLabel = Instance.new("TextLabel")
-
-    iconLabel.Size =
-        UDim2.fromOffset(34, 34)
-
-    iconLabel.Position =
-        UDim2.fromOffset(12, 7)
-
-    iconLabel.BackgroundColor3 =
-        enabled
-        and COLORS.Accent
-        or Color3.fromRGB(51, 65, 85)
-
-    iconLabel.Text = icon
-    iconLabel.TextColor3 = COLORS.Text
-    iconLabel.Font = Enum.Font.GothamBold
-    iconLabel.TextSize = 15
-    iconLabel.Parent = button
-
-    addCorner(iconLabel, 9)
-
-    local titleLabel = Instance.new("TextLabel")
-
-    titleLabel.Size =
-        UDim2.new(1, -118, 0, 22)
-
-    titleLabel.Position =
-        UDim2.fromOffset(58, 7)
-
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = title
-    titleLabel.TextColor3 = COLORS.Text
-    titleLabel.Font = Enum.Font.GothamBold
-    titleLabel.TextSize = 14
-    titleLabel.TextXAlignment =
-        Enum.TextXAlignment.Left
-
-    titleLabel.Parent = button
-
-    local stateLabel = Instance.new("TextLabel")
-
-    stateLabel.Name = "State"
-
-    stateLabel.Size =
-        UDim2.fromOffset(52, 24)
-
-    stateLabel.Position =
-        UDim2.new(1, -64, 0.5, -12)
-
-    stateLabel.BackgroundColor3 =
-        enabled
-        and COLORS.Success
-        or Color3.fromRGB(51, 65, 85)
-
-    stateLabel.BackgroundTransparency =
-        enabled and 0.75 or 0
-
-    stateLabel.Text =
-        enabled and "ON" or "OFF"
-
-    stateLabel.TextColor3 =
-        enabled
-        and Color3.fromRGB(134, 239, 172)
-        or COLORS.Muted
-
-    stateLabel.Font = Enum.Font.GothamBold
-    stateLabel.TextSize = 11
-    stateLabel.Parent = button
-
-    addCorner(stateLabel, 7)
-
-    return stateLabel
+    local stateL = Instance.new("TextLabel")
+    stateL.Name = "State"
+    stateL.Size = UDim2.fromOffset(52, 24)
+    stateL.Position = UDim2.new(1, -64, 0.5, -12)
+    stateL.BackgroundColor3 = enabled and COLORS.Success or Color3.fromRGB(75, 60, 110)
+    stateL.BackgroundTransparency = enabled and 0.75 or 0
+    stateL.Text = enabled and "ON" or "OFF"
+    stateL.TextColor3 = enabled and Color3.fromRGB(134, 239, 172) or COLORS.Muted
+    stateL.Font = Enum.Font.GothamBold
+    stateL.TextSize = 11
+    stateL.Parent = btn
+    addCorner(stateL, 7)
+    return stateL
 end
 
 --==================================================
--- KEY GUI
+-- TELA DE KEY
 --==================================================
 
 local KeyGui = Instance.new("ScreenGui")
-
-KeyGui.Name = "TLXKey"
+KeyGui.Name = "SeraphimKey"
 KeyGui.ResetOnSpawn = false
-KeyGui.ZIndexBehavior =
-    Enum.ZIndexBehavior.Sibling
+KeyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+KeyGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-KeyGui.Parent =
-    LocalPlayer:WaitForChild("PlayerGui")
-
-local KeyShadow = addShadow(
-    KeyGui,
-    UDim2.fromOffset(342, 232),
-    UDim2.fromScale(0.5, 0.5)
-)
-
-KeyShadow.AnchorPoint =
-    Vector2.new(0.5, 0.5)
+local KeyShadow = addShadow(KeyGui, UDim2.fromOffset(342, 240), UDim2.fromScale(0.5, 0.5))
+KeyShadow.AnchorPoint = Vector2.new(0.5, 0.5)
 
 local KeyFrame = Instance.new("Frame")
-
-KeyFrame.Size =
-    UDim2.fromOffset(330, 220)
-
-KeyFrame.Position =
-    UDim2.fromScale(0.5, 0.5)
-
-KeyFrame.AnchorPoint =
-    Vector2.new(0.5, 0.5)
-
-KeyFrame.BackgroundColor3 =
-    COLORS.Background
-
+KeyFrame.Size = UDim2.fromOffset(330, 228)
+KeyFrame.Position = UDim2.fromScale(0.5, 0.5)
+KeyFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+KeyFrame.BackgroundColor3 = COLORS.Background
 KeyFrame.ZIndex = 1
 KeyFrame.Parent = KeyGui
-
 addCorner(KeyFrame, 18)
-
-addStroke(
-    KeyFrame,
-    COLORS.Accent,
-    0.2,
-    1.5
-)
+addStroke(KeyFrame, COLORS.Accent, 0.2, 1.5)
 
 local KeyTop = Instance.new("Frame")
-
-KeyTop.Size =
-    UDim2.new(1, 0, 0, 70)
-
-KeyTop.BackgroundColor3 =
-    COLORS.Accent
-
+KeyTop.Size = UDim2.new(1, 0, 0, 78)
+KeyTop.BackgroundColor3 = COLORS.Accent
 KeyTop.Parent = KeyFrame
-
 addCorner(KeyTop, 18)
-
-addGradient(
-    KeyTop,
-    COLORS.Accent,
-    COLORS.AccentLight,
-    25
-)
+addGradient(KeyTop, COLORS.Accent, COLORS.AccentLight, 25)
 
 local KeyTitle = Instance.new("TextLabel")
-
-KeyTitle.Size =
-    UDim2.new(1, -40, 0, 28)
-
-KeyTitle.Position =
-    UDim2.fromOffset(20, 12)
-
+KeyTitle.Size = UDim2.new(1, -40, 0, 30)
+KeyTitle.Position = UDim2.fromOffset(20, 14)
 KeyTitle.BackgroundTransparency = 1
-KeyTitle.Text = "TLX HUB"
+KeyTitle.Text = "SERAPHIM HUB"
 KeyTitle.TextColor3 = COLORS.Text
 KeyTitle.Font = Enum.Font.GothamBold
-KeyTitle.TextSize = 23
-KeyTitle.TextXAlignment =
-    Enum.TextXAlignment.Left
-
+KeyTitle.TextSize = 24
+KeyTitle.TextXAlignment = Enum.TextXAlignment.Left
 KeyTitle.Parent = KeyTop
 
-local KeySubtitle = Instance.new("TextLabel")
-
-KeySubtitle.Size =
-    UDim2.new(1, -40, 0, 18)
-
-KeySubtitle.Position =
-    UDim2.fromOffset(20, 40)
-
-KeySubtitle.BackgroundTransparency = 1
-KeySubtitle.Text =
-    "Acesso seguro ao seu painel"
-
-KeySubtitle.TextColor3 =
-    Color3.fromRGB(245, 232, 255)
-
-KeySubtitle.Font = Enum.Font.Gotham
-KeySubtitle.TextSize = 12
-KeySubtitle.TextXAlignment =
-    Enum.TextXAlignment.Left
-
-KeySubtitle.Parent = KeyTop
+local KeySub = Instance.new("TextLabel")
+KeySub.Size = UDim2.new(1, -40, 0, 18)
+KeySub.Position = UDim2.fromOffset(20, 46)
+KeySub.BackgroundTransparency = 1
+KeySub.Text = "Acesso ao portal celestial ✦"
+KeySub.TextColor3 = Color3.fromRGB(233, 223, 255)
+KeySub.Font = Enum.Font.Gotham
+KeySub.TextSize = 12
+KeySub.TextXAlignment = Enum.TextXAlignment.Left
+KeySub.Parent = KeyTop
 
 local KeyBox = Instance.new("TextBox")
-
-KeyBox.Size =
-    UDim2.new(1, -40, 0, 42)
-
-KeyBox.Position =
-    UDim2.fromOffset(20, 88)
-
-KeyBox.PlaceholderText =
-    "Digite sua key..."
-
+KeyBox.Size = UDim2.new(1, -40, 0, 44)
+KeyBox.Position = UDim2.fromOffset(20, 96)
+KeyBox.PlaceholderText = "Insira sua chave..."
 KeyBox.Text = ""
 KeyBox.ClearTextOnFocus = false
 KeyBox.TextColor3 = COLORS.Text
@@ -650,732 +355,224 @@ KeyBox.BackgroundColor3 = COLORS.Surface
 KeyBox.Font = Enum.Font.Gotham
 KeyBox.TextSize = 14
 KeyBox.Parent = KeyFrame
-
 addCorner(KeyBox, 10)
+addStroke(KeyBox, Color3.fromRGB(110, 90, 160), 0.25, 1)
 
-addStroke(
-    KeyBox,
-    Color3.fromRGB(71, 85, 105),
-    0.25,
-    1
-)
-
-local Enter = Instance.new("TextButton")
-
-Enter.Size =
-    UDim2.new(1, -40, 0, 42)
-
-Enter.Position =
-    UDim2.fromOffset(20, 145)
-
-Enter.Text = "ENTRAR NO HUB"
-Enter.TextColor3 = COLORS.Text
-Enter.BackgroundColor3 = COLORS.Accent
-Enter.Font = Enum.Font.GothamBold
-Enter.TextSize = 13
-Enter.AutoButtonColor = false
-Enter.Parent = KeyFrame
-
-addCorner(Enter, 10)
-
-addGradient(
-    Enter,
-    COLORS.Accent,
-    COLORS.AccentLight,
-    25
-)
-
-addHover(
-    Enter,
-    COLORS.Accent,
-    COLORS.AccentLight
-)
+local EnterBtn = Instance.new("TextButton")
+EnterBtn.Size = UDim2.new(1, -40, 0, 44)
+EnterBtn.Position = UDim2.fromOffset(20, 154)
+EnterBtn.Text = "ENTRAR NO SERAPHIM"
+EnterBtn.TextColor3 = COLORS.Text
+EnterBtn.BackgroundColor3 = COLORS.Accent
+EnterBtn.Font = Enum.Font.GothamBold
+EnterBtn.TextSize = 13
+EnterBtn.AutoButtonColor = false
+EnterBtn.Parent = KeyFrame
+addCorner(EnterBtn, 10)
+addGradient(EnterBtn, COLORS.Accent, COLORS.AccentLight, 25)
+addHover(EnterBtn, COLORS.Accent, COLORS.AccentLight)
 
 --==================================================
--- ABRIR HUB
+-- ABRIR HUB PRINCIPAL
 --==================================================
 
-Enter.MouseButton1Click:Connect(function()
-
+EnterBtn.MouseButton1Click:Connect(function()
     if KeyBox.Text ~= KEY then
-
         KeyBox.Text = ""
-
-        KeyBox.PlaceholderText =
-            "Key incorreta. Tente novamente."
-
+        KeyBox.PlaceholderText = "Chave inválida. Tente novamente."
         return
     end
-
     KeyGui:Destroy()
 
-    --==================================================
-    -- HUB
-    --==================================================
-
     local Gui = Instance.new("ScreenGui")
-
-    Gui.Name = "TLXHub"
+    Gui.Name = "SeraphimHub"
     Gui.ResetOnSpawn = false
+    Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    Gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-    Gui.ZIndexBehavior =
-        Enum.ZIndexBehavior.Sibling
-
-    Gui.Parent =
-        LocalPlayer:WaitForChild("PlayerGui")
-
-    local MainShadow = addShadow(
-        Gui,
-        UDim2.fromOffset(412, 558),
-        UDim2.fromScale(0.5, 0.5)
-    )
-
-    MainShadow.AnchorPoint =
-        Vector2.new(0.5, 0.5)
+    local MainShadow = addShadow(Gui, UDim2.fromOffset(412, 558), UDim2.fromScale(0.5, 0.5))
+    MainShadow.AnchorPoint = Vector2.new(0.5, 0.5)
 
     local Main = Instance.new("Frame")
-
-    Main.Size =
-        UDim2.fromOffset(400, 546)
-
-    Main.Position =
-        UDim2.fromScale(0.5, 0.5)
-
-    Main.AnchorPoint =
-        Vector2.new(0.5, 0.5)
-
-    Main.BackgroundColor3 =
-        COLORS.Background
-
+    Main.Size = UDim2.fromOffset(400, 546)
+    Main.Position = UDim2.fromScale(0.5, 0.5)
+    Main.AnchorPoint = Vector2.new(0.5, 0.5)
+    Main.BackgroundColor3 = COLORS.Background
     Main.ZIndex = 1
     Main.Parent = Gui
-
     addCorner(Main, 20)
+    addStroke(Main, COLORS.Accent, 0.15, 1.5)
 
-    addStroke(
-        Main,
-        COLORS.Accent,
-        0.15,
-        1.5
-    )
+    -- Camada de fundo temático roxo
+    local BgLayer = Instance.new("Frame")
+    BgLayer.Name = "SeraphimBg"
+    BgLayer.Size = UDim2.fromScale(1, 1)
+    BgLayer.BackgroundColor3 = Color3.fromRGB(15, 10, 25)
+    BgLayer.BorderSizePixel = 0
+    BgLayer.ZIndex = 1
+    BgLayer.Parent = Main
+    addCorner(BgLayer, 20)
+    addGradient(BgLayer, Color3.fromRGB(60, 20, 110), Color3.fromRGB(12, 8, 20), 135)
 
-    local ArtLayer = Instance.new("Frame")
-
-    ArtLayer.Name =
-        "VioletBackground"
-
-    ArtLayer.Size =
-        UDim2.fromScale(1, 1)
-
-    ArtLayer.BackgroundColor3 =
-        Color3.fromRGB(10, 8, 12)
-
-    ArtLayer.BorderSizePixel = 0
-    ArtLayer.ZIndex = 1
-    ArtLayer.Parent = Main
-
-    addCorner(ArtLayer, 20)
-
-    addGradient(
-        ArtLayer,
-        Color3.fromRGB(72, 12, 42),
-        Color3.fromRGB(7, 7, 10),
-        135
-    )
-
-    --==================================================
-    -- FUNDO ANIME: CEREJEIRAS, PETALAS E PERSONAGENS
-    --==================================================
-
-    local AnimeArt = Instance.new("Frame")
-    AnimeArt.Name = "CherryBlossomAnimeArt"
-    AnimeArt.Size = UDim2.fromScale(1, 1)
-    AnimeArt.BackgroundTransparency = 1
-    AnimeArt.ClipsDescendants = true
-    AnimeArt.ZIndex = 2
-    AnimeArt.Parent = Main
-
-    local function artFrame(name, size, position, color, transparency, z)
-        local item = Instance.new("Frame")
-        item.Name = name
-        item.Size = size
-        item.Position = position
-        item.BackgroundColor3 = color
-        item.BackgroundTransparency = transparency or 0
-        item.BorderSizePixel = 0
-        item.ZIndex = z or 2
-        item.Parent = AnimeArt
-        return item
-    end
-
-    local function blossom(position, size)
-        local petal = Instance.new("TextLabel")
-        petal.Name = "CherryBlossom"
-        petal.Size = size
-        petal.Position = position
-        petal.BackgroundTransparency = 1
-        petal.Text = "✿"
-        petal.TextColor3 = Color3.fromRGB(255, 183, 216)
-        petal.TextTransparency = 0.08
-        petal.Font = Enum.Font.GothamBold
-        petal.TextSize = math.max(size.X.Offset, size.Y.Offset)
-        petal.ZIndex = 3
-        petal.Parent = AnimeArt
-    end
-
-    local trunk = artFrame("SakuraTrunk", UDim2.fromOffset(16, 340), UDim2.new(0, -2, 0, 160), Color3.fromRGB(55, 27, 48), 0.15, 2)
-    trunk.Rotation = -8
-    addCorner(trunk, 8)
-
-    local branchA = artFrame("SakuraBranchA", UDim2.fromOffset(210, 12), UDim2.new(0, 0, 0, 190), Color3.fromRGB(55, 27, 48), 0.12, 2)
-    branchA.Rotation = -18
-    addCorner(branchA, 6)
-
-    local branchB = artFrame("SakuraBranchB", UDim2.fromOffset(155, 10), UDim2.new(0, 15, 0, 255), Color3.fromRGB(55, 27, 48), 0.18, 2)
-    branchB.Rotation = 16
-    addCorner(branchB, 5)
-
-    local petals = {
-        {UDim2.fromOffset(34, 92), UDim2.fromOffset(24, 24)},
-        {UDim2.fromOffset(92, 142), UDim2.fromOffset(18, 18)},
-        {UDim2.fromOffset(144, 72), UDim2.fromOffset(20, 20)},
-        {UDim2.fromOffset(270, 128), UDim2.fromOffset(22, 22)},
-        {UDim2.fromOffset(340, 84), UDim2.fromOffset(18, 18)},
-        {UDim2.fromOffset(318, 300), UDim2.fromOffset(24, 24)},
-        {UDim2.fromOffset(46, 390), UDim2.fromOffset(20, 20)},
-        {UDim2.fromOffset(252, 420), UDim2.fromOffset(18, 18)},
-    }
-    for _, item in ipairs(petals) do
-        blossom(item[1], item[2])
-    end
-
-    local function animeCharacter(prefix, basePosition, hairColor, outfitColor, skinColor)
-        local body = artFrame(prefix .. "Body", UDim2.fromOffset(64, 94), basePosition + UDim2.fromOffset(0, 46), outfitColor, 0.1, 2)
-        addCorner(body, 22)
-
-        local head = artFrame(prefix .. "Head", UDim2.fromOffset(58, 58), basePosition, skinColor, 0, 3)
-        addCorner(head, 29)
-
-        local hair = artFrame(prefix .. "Hair", UDim2.fromOffset(64, 29), basePosition + UDim2.fromOffset(-3, -3), hairColor, 0, 4)
-        addCorner(hair, 16)
-
-        local hairTip = artFrame(prefix .. "HairTip", UDim2.fromOffset(17, 30), basePosition + UDim2.fromOffset(43, 13), hairColor, 0, 4)
-        hairTip.Rotation = 24
-        addCorner(hairTip, 8)
-
-        for _, x in ipairs({16, 37}) do
-            local eye = artFrame(prefix .. "Eye" .. x, UDim2.fromOffset(6, 10), basePosition + UDim2.fromOffset(x, 30), Color3.fromRGB(49, 25, 54), 0, 5)
-            addCorner(eye, 3)
-        end
-
-        local blush = artFrame(prefix .. "Blush", UDim2.fromOffset(10, 5), basePosition + UDim2.fromOffset(8, 43), Color3.fromRGB(255, 138, 179), 0.25, 5)
-        addCorner(blush, 3)
-
-        local collar = artFrame(prefix .. "Collar", UDim2.fromOffset(20, 8), basePosition + UDim2.fromOffset(22, 51), Color3.fromRGB(255, 220, 241), 0.15, 4)
-        addCorner(collar, 4)
-    end
-
-    animeCharacter("AnimeGirl", UDim2.fromOffset(292, 352), Color3.fromRGB(41, 24, 72), Color3.fromRGB(128, 55, 120), Color3.fromRGB(255, 214, 220))
-    animeCharacter("AnimeBoy", UDim2.fromOffset(52, 418), Color3.fromRGB(26, 42, 72), Color3.fromRGB(49, 91, 137), Color3.fromRGB(255, 220, 204))
-
-    local note = Instance.new("TextLabel")
-    note.Name = "AnimeBackgroundCaption"
-    note.Size = UDim2.new(1, -36, 0, 20)
-    note.Position = UDim2.fromOffset(18, 482)
-    note.BackgroundTransparency = 1
-    note.Text = "✦  SAKURA NIGHT  ✦"
-    note.TextColor3 = Color3.fromRGB(255, 188, 220)
-    note.TextTransparency = 0.2
-    note.Font = Enum.Font.GothamBold
-    note.TextSize = 10
-    note.ZIndex = 3
-    note.Parent = AnimeArt
-
-    local dragging = false
-    local dragStart
-    local startPosition
-
-    Main.InputBegan:Connect(function(input)
-
-        if input.UserInputType ==
-            Enum.UserInputType.MouseButton1
-            or input.UserInputType ==
-            Enum.UserInputType.Touch then
-
+    -- Arrastar janela
+    local dragging, dragStart, startPos = false, nil, nil
+    Main.InputBegan:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
             dragging = true
-            dragStart = input.Position
-            startPosition = Main.Position
-
-            input.Changed:Connect(function()
-
-                if input.UserInputState ==
-                    Enum.UserInputState.End then
-
-                    dragging = false
-                end
+            dragStart = inp.Position
+            startPos = Main.Position
+            inp.Changed:Connect(function()
+                if inp.UserInputState == Enum.UserInputState.End then dragging = false end
             end)
         end
     end)
-
-    UserInputService.InputChanged:Connect(function(input)
-
-        if dragging
-            and (
-                input.UserInputType ==
-                Enum.UserInputType.MouseMovement
-
-                or
-
-                input.UserInputType ==
-                Enum.UserInputType.Touch
-            ) then
-
-            local delta =
-                input.Position - dragStart
-
-            Main.Position =
-                UDim2.new(
-                    startPosition.X.Scale,
-                    startPosition.X.Offset + delta.X,
-                    startPosition.Y.Scale,
-                    startPosition.Y.Offset + delta.Y
-                )
+    UserInputService.InputChanged:Connect(function(inp)
+        if dragging and (inp.UserInputType == Enum.UserInputType.MouseMovement or inp.UserInputType == Enum.UserInputType.Touch) then
+            local delta = inp.Position - dragStart
+            Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
 
     local Header = Instance.new("Frame")
-
-    Header.Size =
-        UDim2.new(1, 0, 0, 92)
-
-    Header.BackgroundColor3 =
-        COLORS.Accent
-
+    Header.Size = UDim2.new(1, 0, 0, 92)
+    Header.BackgroundColor3 = COLORS.Accent
     Header.Parent = Main
-
     addCorner(Header, 20)
-
-    addGradient(
-        Header,
-        COLORS.Accent,
-        COLORS.AccentLight,
-        25
-    )
+    addGradient(Header, COLORS.Accent, COLORS.AccentLight, 25)
 
     local Title = Instance.new("TextLabel")
-
-    Title.Size =
-        UDim2.new(1, -80, 0, 30)
-
-    Title.Position =
-        UDim2.fromOffset(22, 17)
-
+    Title.Size = UDim2.new(1, -80, 0, 30)
+    Title.Position = UDim2.fromOffset(22, 17)
     Title.BackgroundTransparency = 1
-    Title.Text = "TLX MM2 HUB"
+    Title.Text = "SERAPHIM HUB"
     Title.TextColor3 = COLORS.Text
     Title.Font = Enum.Font.GothamBold
     Title.TextSize = 23
-    Title.TextXAlignment =
-        Enum.TextXAlignment.Left
-
+    Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.Parent = Header
 
     local Subtitle = Instance.new("TextLabel")
-
-    Subtitle.Size =
-        UDim2.new(1, -80, 0, 18)
-
-    Subtitle.Position =
-        UDim2.fromOffset(22, 51)
-
+    Subtitle.Size = UDim2.new(1, -80, 0, 18)
+    Subtitle.Position = UDim2.fromOffset(22, 51)
     Subtitle.BackgroundTransparency = 1
-    Subtitle.Text =
-        "Painel de recursos e visualização"
-
-    Subtitle.TextColor3 =
-        Color3.fromRGB(245, 232, 255)
-
+    Subtitle.Text = "Guardião das sombras ✦ MM2"
+    Subtitle.TextColor3 = Color3.fromRGB(233, 223, 255)
     Subtitle.Font = Enum.Font.Gotham
     Subtitle.TextSize = 12
-    Subtitle.TextXAlignment =
-        Enum.TextXAlignment.Left
-
-    Subtitle.Visible = false
+    Subtitle.TextXAlignment = Enum.TextXAlignment.Left
     Subtitle.Parent = Header
 
-    local Close = Instance.new("TextButton")
-
-    Close.Size =
-        UDim2.fromOffset(38, 38)
-
-    Close.Position =
-        UDim2.new(1, -54, 0, 18)
-
-    Close.Text = "×"
-    Close.TextSize = 25
-    Close.TextColor3 = COLORS.Text
-
-    Close.BackgroundColor3 =
-        Color3.fromRGB(255, 255, 255)
-
-    Close.BackgroundTransparency = 0.82
-    Close.AutoButtonColor = false
-    Close.Parent = Header
-
-    addCorner(Close, 10)
-
-    addHover(
-        Close,
-        Color3.fromRGB(255, 255, 255),
-        COLORS.Danger
-    )
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Size = UDim2.fromOffset(38, 38)
+    CloseBtn.Position = UDim2.new(1, -54, 0, 18)
+    CloseBtn.Text = "×"
+    CloseBtn.TextSize = 25
+    CloseBtn.TextColor3 = COLORS.Text
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    CloseBtn.BackgroundTransparency = 0.82
+    CloseBtn.AutoButtonColor = false
+    CloseBtn.Parent = Header
+    addCorner(CloseBtn, 10)
+    addHover(CloseBtn, Color3.fromRGB(255, 255, 255), COLORS.Danger)
 
     local Section = Instance.new("TextLabel")
-
-    Section.Size =
-        UDim2.new(1, -40, 0, 20)
-
-    Section.Position =
-        UDim2.fromOffset(20, 108)
-
+    Section.Size = UDim2.new(1, -40, 0, 20)
+    Section.Position = UDim2.fromOffset(20, 108)
     Section.BackgroundTransparency = 1
-    Section.Text = "CONTROLES PRINCIPAIS"
+    Section.Text = "✦ CONTROLES"
     Section.TextColor3 = COLORS.Muted
     Section.Font = Enum.Font.GothamBold
     Section.TextSize = 11
-    Section.TextXAlignment =
-        Enum.TextXAlignment.Left
-
+    Section.TextXAlignment = Enum.TextXAlignment.Left
     Section.Parent = Main
 
-    local function makeControl(
-        y,
-        icon,
-        title,
-        description,
-        enabled
-    )
-        local button = Instance.new("TextButton")
-
-        button.Size =
-            UDim2.new(1, -40, 0, 50)
-
-        button.Position =
-            UDim2.fromOffset(20, y)
-
-        button.Parent = Main
-
-        local state =
-            styleButton(
-                button,
-                icon,
-                title,
-                description,
-                enabled
-            )
-
-        return button, state
+    local function makeControl(y, icon, title, desc, enabled)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -40, 0, 50)
+        btn.Position = UDim2.fromOffset(20, y)
+        btn.Parent = Main
+        local state = styleButton(btn, icon, title, desc, enabled)
+        return btn, state
     end
 
-    local ESPButton, ESPState =
-        makeControl(
-            134,
-            "E",
-            "ESP DE ROLES",
-            "Exibe o papel de cada jogador",
-            ESP_ENABLED
-        )
-
-    addHover(
-        ESPButton,
-        COLORS.SurfaceLight,
-        Color3.fromRGB(42, 51, 76)
-    )
-
-    ESPButton.MouseButton1Click:Connect(function()
-
+    local ESPBtn, ESPState = makeControl(134, "E", "ESP DE ROLES", "Identifica o papel de cada jogador", ESP_ENABLED)
+    addHover(ESPBtn, COLORS.SurfaceLight, Color3.fromRGB(70, 50, 110))
+    ESPBtn.MouseButton1Click:Connect(function()
         ESP_ENABLED = not ESP_ENABLED
-
-        ESPState.Text =
-            ESP_ENABLED and "ON" or "OFF"
-
-        ESPState.BackgroundColor3 =
-            ESP_ENABLED
-            and COLORS.Success
-            or Color3.fromRGB(51, 65, 85)
-
-        ESPState.BackgroundTransparency =
-            ESP_ENABLED and 0.75 or 0
-
-        ESPState.TextColor3 =
-            ESP_ENABLED
-            and Color3.fromRGB(134, 239, 172)
-            or COLORS.Muted
-
+        ESPState.Text = ESP_ENABLED and "ON" or "OFF"
+        ESPState.BackgroundColor3 = ESP_ENABLED and COLORS.Success or Color3.fromRGB(75, 60, 110)
+        ESPState.BackgroundTransparency = ESP_ENABLED and 0.75 or 0
+        ESPState.TextColor3 = ESP_ENABLED and Color3.fromRGB(134, 239, 172) or COLORS.Muted
         if not ESP_ENABLED then
-
-            for _, highlight in pairs(ESP) do
-
-                if highlight then
-                    highlight.Enabled = false
-                end
-            end
+            for _, h in pairs(ESP) do if h then h.Enabled = false end end
         end
     end)
 
-    local AimButton, AimState =
-        makeControl(
-            194,
-            "A",
-            "AIM ASSIST",
-            "Mira no alvo mais próximo",
-            AIM_ENABLED
-        )
-
-    addHover(
-        AimButton,
-        COLORS.Surface,
-        Color3.fromRGB(42, 51, 76)
-    )
-
-    AimButton.MouseButton1Click:Connect(function()
-
+    local AimBtn, AimState = makeControl(194, "A", "AIM ASSIST", "Mira automaticamente no alvo", AIM_ENABLED)
+    addHover(AimBtn, COLORS.Surface, Color3.fromRGB(70, 50, 110))
+    AimBtn.MouseButton1Click:Connect(function()
         AIM_ENABLED = not AIM_ENABLED
-
-        AimState.Text =
-            AIM_ENABLED and "ON" or "OFF"
-
-        AimState.BackgroundColor3 =
-            AIM_ENABLED
-            and COLORS.Success
-            or Color3.fromRGB(51, 65, 85)
-
-        AimState.BackgroundTransparency =
-            AIM_ENABLED and 0.75 or 0
-
-        AimState.TextColor3 =
-            AIM_ENABLED
-            and Color3.fromRGB(134, 239, 172)
-            or COLORS.Muted
+        AimState.Text = AIM_ENABLED and "ON" or "OFF"
+        AimState.BackgroundColor3 = AIM_ENABLED and COLORS.Success or Color3.fromRGB(75, 60, 110)
+        AimState.BackgroundTransparency = AIM_ENABLED and 0.75 or 0
+        AimState.TextColor3 = AIM_ENABLED and Color3.fromRGB(134, 239, 172) or COLORS.Muted
     end)
 
-    local NoclipButton, NoclipState =
-        makeControl(
-            254,
-            "N",
-            "NOCLIP",
-            "Alterna a colisão do personagem",
-            NOCLIP_ENABLED
-        )
-
-    addHover(
-        NoclipButton,
-        COLORS.Surface,
-        Color3.fromRGB(42, 51, 76)
-    )
-
-    NoclipButton.MouseButton1Click:Connect(function()
-
-        setNoclip(
-            not NOCLIP_ENABLED
-        )
-
-        NoclipState.Text =
-            NOCLIP_ENABLED and "ON" or "OFF"
-
-        NoclipState.BackgroundColor3 =
-            NOCLIP_ENABLED
-            and COLORS.Success
-            or Color3.fromRGB(51, 65, 85)
-
-        NoclipState.BackgroundTransparency =
-            NOCLIP_ENABLED and 0.75 or 0
-
-        NoclipState.TextColor3 =
-            NOCLIP_ENABLED
-            and Color3.fromRGB(134, 239, 172)
-            or COLORS.Muted
+    local NoclipBtn, NoclipState = makeControl(254, "N", "NOCLIP", "Atravessa paredes", NOCLIP_ENABLED)
+    addHover(NoclipBtn, COLORS.Surface, Color3.fromRGB(70, 50, 110))
+    NoclipBtn.MouseButton1Click:Connect(function()
+        setNoclip(not NOCLIP_ENABLED)
+        NoclipState.Text = NOCLIP_ENABLED and "ON" or "OFF"
+        NoclipState.BackgroundColor3 = NOCLIP_ENABLED and COLORS.Success or Color3.fromRGB(75, 60, 110)
+        NoclipState.BackgroundTransparency = NOCLIP_ENABLED and 0.75 or 0
+        NoclipState.TextColor3 = NOCLIP_ENABLED and Color3.fromRGB(134, 239, 172) or COLORS.Muted
     end)
 
-    local JumpButton, JumpState =
-        makeControl(
-            314,
-            "J",
-            "INFINITE JUMP",
-            "Permite saltos consecutivos",
-            INFINITE_JUMP_ENABLED
-        )
-
-    addHover(
-        JumpButton,
-        COLORS.Surface,
-        Color3.fromRGB(42, 51, 76)
-    )
-
-    JumpButton.MouseButton1Click:Connect(function()
-
-        INFINITE_JUMP_ENABLED =
-            not INFINITE_JUMP_ENABLED
-
-        JumpState.Text =
-            INFINITE_JUMP_ENABLED
-            and "ON" or "OFF"
-
-        JumpState.BackgroundColor3 =
-            INFINITE_JUMP_ENABLED
-            and COLORS.Success
-            or Color3.fromRGB(51, 65, 85)
-
-        JumpState.BackgroundTransparency =
-            INFINITE_JUMP_ENABLED
-            and 0.75 or 0
-
-        JumpState.TextColor3 =
-            INFINITE_JUMP_ENABLED
-            and Color3.fromRGB(134, 239, 172)
-            or COLORS.Muted
+    local JumpBtn, JumpState = makeControl(314, "J", "INFINITE JUMP", "Pule infinitamente", INFINITE_JUMP_ENABLED)
+    addHover(JumpBtn, COLORS.Surface, Color3.fromRGB(70, 50, 110))
+    JumpBtn.MouseButton1Click:Connect(function()
+        INFINITE_JUMP_ENABLED = not INFINITE_JUMP_ENABLED
+        JumpState.Text = INFINITE_JUMP_ENABLED and "ON" or "OFF"
+        JumpState.BackgroundColor3 = INFINITE_JUMP_ENABLED and COLORS.Success or Color3.fromRGB(75, 60, 110)
+        JumpState.BackgroundTransparency = INFINITE_JUMP_ENABLED and 0.75 or 0
+        JumpState.TextColor3 = INFINITE_JUMP_ENABLED and Color3.fromRGB(134, 239, 172) or COLORS.Muted
     end)
-
-    local LegendFrame = Instance.new("Frame")
-
-    LegendFrame.Size =
-        UDim2.new(1, -40, 0, 116)
-
-    LegendFrame.Position =
-        UDim2.fromOffset(20, 374)
-
-    LegendFrame.BackgroundColor3 =
-        COLORS.Surface
-
-    LegendFrame.Visible = false
-    LegendFrame.Parent = Main
-
-    addCorner(LegendFrame, 12)
-
-    addStroke(
-        LegendFrame,
-        Color3.fromRGB(51, 65, 85),
-        0.35,
-        1
-    )
-
-    local LegendTitle = Instance.new("TextLabel")
-
-    LegendTitle.Size =
-        UDim2.new(1, -24, 0, 22)
-
-    LegendTitle.Position =
-        UDim2.fromOffset(12, 10)
-
-    LegendTitle.BackgroundTransparency = 1
-    LegendTitle.Text = "LEGENDA DE ROLES"
-    LegendTitle.TextColor3 = COLORS.Text
-    LegendTitle.Font = Enum.Font.GothamBold
-    LegendTitle.TextSize = 12
-    LegendTitle.TextXAlignment =
-        Enum.TextXAlignment.Left
-
-    LegendTitle.Parent = LegendFrame
-
-    local Info = Instance.new("TextLabel")
-
-    Info.Size =
-        UDim2.new(1, -24, 0, 65)
-
-    Info.Position =
-        UDim2.fromOffset(12, 36)
-
-    Info.BackgroundTransparency = 1
-
-    Info.Text =
-        "VERMELHO  •  Murderer   |   AZUL  •  Sheriff\n" ..
-        "VERDE  •  Innocent\n" ..
-        "Murderer = Knife  •  Sheriff = Gun  •  Sem arma = Innocent"
-
-    Info.TextColor3 = COLORS.Muted
-    Info.Font = Enum.Font.Gotham
-    Info.TextSize = 11
-    Info.TextWrapped = true
-    Info.TextXAlignment =
-        Enum.TextXAlignment.Left
-
-    Info.TextYAlignment =
-        Enum.TextYAlignment.Top
-
-    Info.Parent = LegendFrame
 
     local Footer = Instance.new("TextLabel")
-
-    Footer.Size =
-        UDim2.new(1, -40, 0, 20)
-
-    Footer.Position =
-        UDim2.fromOffset(20, 510)
-
+    Footer.Size = UDim2.new(1, -40, 0, 20)
+    Footer.Position = UDim2.fromOffset(20, 510)
     Footer.BackgroundTransparency = 1
-
-    Footer.Text =
-        "TLX  •  Interface renovada"
-
-    Footer.TextColor3 =
-        Color3.fromRGB(151, 102, 123)
-
+    Footer.Text = "✦ SERAPHIM HUB — Que a luz te guie ✦"
+    Footer.TextColor3 = Color3.fromRGB(179, 153, 212)
     Footer.Font = Enum.Font.Gotham
     Footer.TextSize = 10
-
-    Footer.TextXAlignment =
-        Enum.TextXAlignment.Center
-
+    Footer.TextXAlignment = Enum.TextXAlignment.Center
     Footer.Parent = Main
 
-    local Open = Instance.new("TextButton")
+    local OpenBtn = Instance.new("TextButton")
+    OpenBtn.Size = UDim2.fromOffset(58, 58)
+    OpenBtn.Position = UDim2.fromOffset(18, 210)
+    OpenBtn.Text = "S"
+    OpenBtn.TextSize = 18
+    OpenBtn.TextColor3 = COLORS.Text
+    OpenBtn.BackgroundColor3 = COLORS.Accent
+    OpenBtn.AutoButtonColor = false
+    OpenBtn.Visible = false
+    OpenBtn.Parent = Gui
+    addCorner(OpenBtn, 18)
+    addStroke(OpenBtn, COLORS.AccentLight, 0.2, 1.5)
+    addGradient(OpenBtn, COLORS.Accent, COLORS.AccentLight, 25)
 
-    Open.Size =
-        UDim2.fromOffset(58, 58)
-
-    Open.Position =
-        UDim2.fromOffset(18, 210)
-
-    Open.Text = "TLX"
-    Open.TextSize = 14
-    Open.TextColor3 = COLORS.Text
-
-    Open.BackgroundColor3 =
-        COLORS.Accent
-
-    Open.AutoButtonColor = false
-    Open.Visible = false
-    Open.Parent = Gui
-
-    addCorner(Open, 18)
-
-    addStroke(
-        Open,
-        COLORS.AccentLight,
-        0.2,
-        1.5
-    )
-
-    addGradient(
-        Open,
-        COLORS.Accent,
-        COLORS.AccentLight,
-        25
-    )
-
-    Close.MouseButton1Click:Connect(function()
-
+    CloseBtn.MouseButton1Click:Connect(function()
         Main.Visible = false
         MainShadow.Visible = false
-        Open.Visible = true
+        OpenBtn.Visible = true
     end)
-
-    Open.MouseButton1Click:Connect(function()
-
+    OpenBtn.MouseButton1Click:Connect(function()
         Main.Visible = true
         MainShadow.Visible = true
-        Open.Visible = false
+        OpenBtn.Visible = false
     end)
 end)
 
---// Fim do TLX MM2 Copy Hub
+--// Fim do SERAPHIM HUB
