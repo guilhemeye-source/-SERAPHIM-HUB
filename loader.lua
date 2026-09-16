@@ -1,5 +1,4 @@
 --// TLX MM2 COPY HUB
---// Para uso no seu próprio jogo no Roblox Studio
 --// ESP + AIM ASSIST + NOCLIP + INFINITE JUMP + KEY
 
 local Players = game:GetService("Players")
@@ -525,73 +524,6 @@ local function styleButton(
 end
 
 --==================================================
--- PERSONAGEM DECORATIVO 3D
---==================================================
-
-local function createCharacterPreview(parent, position, size)
-    local viewport = Instance.new("ViewportFrame")
-    viewport.Name = "CharacterPreview"
-    viewport.Size = size
-    viewport.Position = position
-    viewport.BackgroundColor3 = Color3.fromRGB(29, 10, 37)
-    viewport.BackgroundTransparency = 0.12
-    viewport.BorderSizePixel = 0
-    viewport.Ambient = Color3.fromRGB(190, 130, 255)
-    viewport.LightColor = Color3.fromRGB(255, 180, 240)
-    viewport.LightDirection = Vector3.new(-1, -1, -1)
-    viewport.ZIndex = 4
-    viewport.Parent = parent
-    addCorner(viewport, 14)
-    addStroke(viewport, Color3.fromRGB(255, 157, 226), 0.2, 1)
-
-    local world = Instance.new("WorldModel")
-    world.Parent = viewport
-
-    local model = Instance.new("Model")
-    model.Name = "TLXCharacter"
-    model.Parent = world
-
-    local function part(name, size3, pos, color, shape)
-        local p = Instance.new("Part")
-        p.Name = name
-        p.Size = size3
-        p.Position = pos
-        p.Anchored = true
-        p.CanCollide = false
-        p.Material = Enum.Material.Neon
-        p.Color = color
-        if shape then
-            p.Shape = shape
-        end
-        p.Parent = model
-        return p
-    end
-
-    local skin = Color3.fromRGB(255, 205, 190)
-    local outfit = Color3.fromRGB(126, 52, 172)
-    local accent = Color3.fromRGB(255, 83, 185)
-    local dark = Color3.fromRGB(24, 12, 37)
-
-    part("Torso", Vector3.new(1.45, 1.75, 0.75), Vector3.new(0, 1.75, 0), outfit)
-    part("Head", Vector3.new(1.35, 1.25, 1.1), Vector3.new(0, 3.35, 0), skin, Enum.PartType.Ball)
-    part("Hair", Vector3.new(1.48, 0.62, 1.16), Vector3.new(0, 3.92, -0.02), dark, Enum.PartType.Ball)
-    part("Visor", Vector3.new(1.05, 0.22, 0.12), Vector3.new(0, 3.42, -0.55), accent)
-    part("ArmL", Vector3.new(0.42, 1.55, 0.48), Vector3.new(-1.02, 1.82, 0), accent)
-    part("ArmR", Vector3.new(0.42, 1.55, 0.48), Vector3.new(1.02, 1.82, 0), accent)
-    part("LegL", Vector3.new(0.52, 1.65, 0.58), Vector3.new(-0.42, 0.05, 0), dark)
-    part("LegR", Vector3.new(0.52, 1.65, 0.58), Vector3.new(0.42, 0.05, 0), dark)
-    part("Badge", Vector3.new(0.36, 0.36, 0.08), Vector3.new(0, 2.0, -0.42), accent, Enum.PartType.Ball)
-
-    local camera = Instance.new("Camera")
-    camera.FieldOfView = 32
-    camera.CFrame = CFrame.new(Vector3.new(5, 3.1, 8), Vector3.new(0, 2.05, 0))
-    camera.Parent = viewport
-    viewport.CurrentCamera = camera
-
-    return viewport
-end
-
---==================================================
 -- KEY GUI
 --==================================================
 
@@ -662,7 +594,7 @@ addGradient(
 local KeyTitle = Instance.new("TextLabel")
 
 KeyTitle.Size =
-    UDim2.new(1, -120, 0, 28)
+    UDim2.new(1, -40, 0, 28)
 
 KeyTitle.Position =
     UDim2.fromOffset(20, 12)
@@ -677,12 +609,10 @@ KeyTitle.TextXAlignment =
 
 KeyTitle.Parent = KeyTop
 
-createCharacterPreview(KeyTop, UDim2.new(1, -82, 0, 7), UDim2.fromOffset(68, 58))
-
 local KeySubtitle = Instance.new("TextLabel")
 
 KeySubtitle.Size =
-    UDim2.new(1, -120, 0, 18)
+    UDim2.new(1, -40, 0, 18)
 
 KeySubtitle.Position =
     UDim2.fromOffset(20, 40)
@@ -829,10 +759,6 @@ Enter.MouseButton1Click:Connect(function()
         1.5
     )
 
-    --==================================================
-    -- FUNDO
-    --==================================================
-
     local ArtLayer = Instance.new("Frame")
 
     ArtLayer.Name =
@@ -845,7 +771,7 @@ Enter.MouseButton1Click:Connect(function()
         Color3.fromRGB(10, 8, 12)
 
     ArtLayer.BorderSizePixel = 0
-    ArtLayer.ZIndex = 0
+    ArtLayer.ZIndex = 1
     ArtLayer.Parent = Main
 
     addCorner(ArtLayer, 20)
@@ -858,8 +784,112 @@ Enter.MouseButton1Click:Connect(function()
     )
 
     --==================================================
-    -- ARRASTAR PAINEL
+    -- FUNDO ANIME: CEREJEIRAS, PETALAS E PERSONAGENS
     --==================================================
+
+    local AnimeArt = Instance.new("Frame")
+    AnimeArt.Name = "CherryBlossomAnimeArt"
+    AnimeArt.Size = UDim2.fromScale(1, 1)
+    AnimeArt.BackgroundTransparency = 1
+    AnimeArt.ClipsDescendants = true
+    AnimeArt.ZIndex = 2
+    AnimeArt.Parent = Main
+
+    local function artFrame(name, size, position, color, transparency, z)
+        local item = Instance.new("Frame")
+        item.Name = name
+        item.Size = size
+        item.Position = position
+        item.BackgroundColor3 = color
+        item.BackgroundTransparency = transparency or 0
+        item.BorderSizePixel = 0
+        item.ZIndex = z or 2
+        item.Parent = AnimeArt
+        return item
+    end
+
+    local function blossom(position, size)
+        local petal = Instance.new("TextLabel")
+        petal.Name = "CherryBlossom"
+        petal.Size = size
+        petal.Position = position
+        petal.BackgroundTransparency = 1
+        petal.Text = "✿"
+        petal.TextColor3 = Color3.fromRGB(255, 183, 216)
+        petal.TextTransparency = 0.08
+        petal.Font = Enum.Font.GothamBold
+        petal.TextSize = math.max(size.X.Offset, size.Y.Offset)
+        petal.ZIndex = 3
+        petal.Parent = AnimeArt
+    end
+
+    local trunk = artFrame("SakuraTrunk", UDim2.fromOffset(16, 340), UDim2.new(0, -2, 0, 160), Color3.fromRGB(55, 27, 48), 0.15, 2)
+    trunk.Rotation = -8
+    addCorner(trunk, 8)
+
+    local branchA = artFrame("SakuraBranchA", UDim2.fromOffset(210, 12), UDim2.new(0, 0, 0, 190), Color3.fromRGB(55, 27, 48), 0.12, 2)
+    branchA.Rotation = -18
+    addCorner(branchA, 6)
+
+    local branchB = artFrame("SakuraBranchB", UDim2.fromOffset(155, 10), UDim2.new(0, 15, 0, 255), Color3.fromRGB(55, 27, 48), 0.18, 2)
+    branchB.Rotation = 16
+    addCorner(branchB, 5)
+
+    local petals = {
+        {UDim2.fromOffset(34, 92), UDim2.fromOffset(24, 24)},
+        {UDim2.fromOffset(92, 142), UDim2.fromOffset(18, 18)},
+        {UDim2.fromOffset(144, 72), UDim2.fromOffset(20, 20)},
+        {UDim2.fromOffset(270, 128), UDim2.fromOffset(22, 22)},
+        {UDim2.fromOffset(340, 84), UDim2.fromOffset(18, 18)},
+        {UDim2.fromOffset(318, 300), UDim2.fromOffset(24, 24)},
+        {UDim2.fromOffset(46, 390), UDim2.fromOffset(20, 20)},
+        {UDim2.fromOffset(252, 420), UDim2.fromOffset(18, 18)},
+    }
+    for _, item in ipairs(petals) do
+        blossom(item[1], item[2])
+    end
+
+    local function animeCharacter(prefix, basePosition, hairColor, outfitColor, skinColor)
+        local body = artFrame(prefix .. "Body", UDim2.fromOffset(64, 94), basePosition + UDim2.fromOffset(0, 46), outfitColor, 0.1, 2)
+        addCorner(body, 22)
+
+        local head = artFrame(prefix .. "Head", UDim2.fromOffset(58, 58), basePosition, skinColor, 0, 3)
+        addCorner(head, 29)
+
+        local hair = artFrame(prefix .. "Hair", UDim2.fromOffset(64, 29), basePosition + UDim2.fromOffset(-3, -3), hairColor, 0, 4)
+        addCorner(hair, 16)
+
+        local hairTip = artFrame(prefix .. "HairTip", UDim2.fromOffset(17, 30), basePosition + UDim2.fromOffset(43, 13), hairColor, 0, 4)
+        hairTip.Rotation = 24
+        addCorner(hairTip, 8)
+
+        for _, x in ipairs({16, 37}) do
+            local eye = artFrame(prefix .. "Eye" .. x, UDim2.fromOffset(6, 10), basePosition + UDim2.fromOffset(x, 30), Color3.fromRGB(49, 25, 54), 0, 5)
+            addCorner(eye, 3)
+        end
+
+        local blush = artFrame(prefix .. "Blush", UDim2.fromOffset(10, 5), basePosition + UDim2.fromOffset(8, 43), Color3.fromRGB(255, 138, 179), 0.25, 5)
+        addCorner(blush, 3)
+
+        local collar = artFrame(prefix .. "Collar", UDim2.fromOffset(20, 8), basePosition + UDim2.fromOffset(22, 51), Color3.fromRGB(255, 220, 241), 0.15, 4)
+        addCorner(collar, 4)
+    end
+
+    animeCharacter("AnimeGirl", UDim2.fromOffset(292, 352), Color3.fromRGB(41, 24, 72), Color3.fromRGB(128, 55, 120), Color3.fromRGB(255, 214, 220))
+    animeCharacter("AnimeBoy", UDim2.fromOffset(52, 418), Color3.fromRGB(26, 42, 72), Color3.fromRGB(49, 91, 137), Color3.fromRGB(255, 220, 204))
+
+    local note = Instance.new("TextLabel")
+    note.Name = "AnimeBackgroundCaption"
+    note.Size = UDim2.new(1, -36, 0, 20)
+    note.Position = UDim2.fromOffset(18, 482)
+    note.BackgroundTransparency = 1
+    note.Text = "✦  SAKURA NIGHT  ✦"
+    note.TextColor3 = Color3.fromRGB(255, 188, 220)
+    note.TextTransparency = 0.2
+    note.Font = Enum.Font.GothamBold
+    note.TextSize = 10
+    note.ZIndex = 3
+    note.Parent = AnimeArt
 
     local dragging = false
     local dragStart
@@ -913,10 +943,6 @@ Enter.MouseButton1Click:Connect(function()
         end
     end)
 
-    --==================================================
-    -- CABEÇALHO
-    --==================================================
-
     local Header = Instance.new("Frame")
 
     Header.Size =
@@ -939,7 +965,7 @@ Enter.MouseButton1Click:Connect(function()
     local Title = Instance.new("TextLabel")
 
     Title.Size =
-        UDim2.new(1, -178, 0, 30)
+        UDim2.new(1, -80, 0, 30)
 
     Title.Position =
         UDim2.fromOffset(22, 17)
@@ -954,12 +980,10 @@ Enter.MouseButton1Click:Connect(function()
 
     Title.Parent = Header
 
-    createCharacterPreview(Header, UDim2.new(1, -126, 0, 12), UDim2.fromOffset(62, 68))
-
     local Subtitle = Instance.new("TextLabel")
 
     Subtitle.Size =
-        UDim2.new(1, -178, 0, 18)
+        UDim2.new(1, -80, 0, 18)
 
     Subtitle.Position =
         UDim2.fromOffset(22, 51)
@@ -1005,10 +1029,6 @@ Enter.MouseButton1Click:Connect(function()
         Color3.fromRGB(255, 255, 255),
         COLORS.Danger
     )
-
-    --==================================================
-    -- CONTROLES
-    --==================================================
 
     local Section = Instance.new("TextLabel")
 
@@ -1057,10 +1077,6 @@ Enter.MouseButton1Click:Connect(function()
         return button, state
     end
 
-    --==================================================
-    -- ESP
-    --==================================================
-
     local ESPButton, ESPState =
         makeControl(
             134,
@@ -1107,10 +1123,6 @@ Enter.MouseButton1Click:Connect(function()
         end
     end)
 
-    --==================================================
-    -- AIM ASSIST
-    --==================================================
-
     local AimButton, AimState =
         makeControl(
             194,
@@ -1146,10 +1158,6 @@ Enter.MouseButton1Click:Connect(function()
             and Color3.fromRGB(134, 239, 172)
             or COLORS.Muted
     end)
-
-    --==================================================
-    -- NOCLIP
-    --==================================================
 
     local NoclipButton, NoclipState =
         makeControl(
@@ -1189,10 +1197,6 @@ Enter.MouseButton1Click:Connect(function()
             or COLORS.Muted
     end)
 
-    --==================================================
-    -- INFINITE JUMP
-    --==================================================
-
     local JumpButton, JumpState =
         makeControl(
             314,
@@ -1231,10 +1235,6 @@ Enter.MouseButton1Click:Connect(function()
             and Color3.fromRGB(134, 239, 172)
             or COLORS.Muted
     end)
-
-    --==================================================
-    -- LEGENDA
-    --==================================================
 
     local LegendFrame = Instance.new("Frame")
 
@@ -1304,10 +1304,6 @@ Enter.MouseButton1Click:Connect(function()
 
     Info.Parent = LegendFrame
 
-    --==================================================
-    -- FOOTER
-    --==================================================
-
     local Footer = Instance.new("TextLabel")
 
     Footer.Size =
@@ -1331,10 +1327,6 @@ Enter.MouseButton1Click:Connect(function()
         Enum.TextXAlignment.Center
 
     Footer.Parent = Main
-
-    --==================================================
-    -- BOTÃO FLUTUANTE
-    --==================================================
 
     local Open = Instance.new("TextButton")
 
@@ -1371,10 +1363,6 @@ Enter.MouseButton1Click:Connect(function()
         25
     )
 
-    --==================================================
-    -- FECHAR / ABRIR
-    --==================================================
-
     Close.MouseButton1Click:Connect(function()
 
         Main.Visible = false
@@ -1391,4 +1379,3 @@ Enter.MouseButton1Click:Connect(function()
 end)
 
 --// Fim do TLX MM2 Copy Hub
-
