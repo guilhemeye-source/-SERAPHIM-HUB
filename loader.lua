@@ -1,4 +1,4 @@
---// SERAPHIM HUB — MM2
+--// SERAPHIM HUB — MM2 + FUNDO PERSONALIZADO
 --// ESP + AIM ASSIST + NOCLIP + INFINITE JUMP + KEY
 
 local Players = game:GetService("Players")
@@ -176,16 +176,16 @@ end)
 --==================================================
 
 local COLORS = {
-    Background    = Color3.fromRGB(12, 8, 20),
-    Surface       = Color3.fromRGB(26, 18, 44),
-    SurfaceLight  = Color3.fromRGB(55, 30, 92),
+    Background    = Color3.fromRGB(8, 5, 15),
+    Surface       = Color3.fromRGB(22, 15, 40),
+    SurfaceLight  = Color3.fromRGB(50, 25, 90),
 
-    Accent        = Color3.fromRGB(139, 92, 246),   -- Roxo principal
-    AccentLight   = Color3.fromRGB(192, 165, 255), -- Roxo brilhante/neon
-    Glow          = Color3.fromRGB(216, 180, 255),
+    Accent        = Color3.fromRGB(124, 58, 237),   -- Roxo principal
+    AccentLight   = Color3.fromRGB(180, 140, 255), -- Roxo brilhante neon
+    Glow          = Color3.fromRGB(200, 170, 255),
 
-    Text          = Color3.fromRGB(248, 250, 252),
-    Muted         = Color3.fromRGB(179, 153, 212),
+    Text          = Color3.fromRGB(250, 245, 255),
+    Muted         = Color3.fromRGB(160, 140, 200),
 
     Success       = Color3.fromRGB(34, 197, 94),
     Danger        = Color3.fromRGB(239, 68, 68)
@@ -252,12 +252,12 @@ local function styleButton(btn, icon, title, desc, enabled)
     btn.AutoButtonColor = false
     btn.BackgroundColor3 = enabled and COLORS.SurfaceLight or COLORS.Surface
     addCorner(btn, 12)
-    addStroke(btn, enabled and COLORS.Accent or Color3.fromRGB(75, 60, 110), 0.35, 1)
+    addStroke(btn, enabled and COLORS.Accent or Color3.fromRGB(70, 55, 115), 0.35, 1)
 
     local iconL = Instance.new("TextLabel")
     iconL.Size = UDim2.fromOffset(34, 34)
     iconL.Position = UDim2.fromOffset(12, 7)
-    iconL.BackgroundColor3 = enabled and COLORS.Accent or Color3.fromRGB(75, 60, 110)
+    iconL.BackgroundColor3 = enabled and COLORS.Accent or Color3.fromRGB(70, 55, 115)
     iconL.Text = icon
     iconL.TextColor3 = COLORS.Text
     iconL.Font = Enum.Font.GothamBold
@@ -278,14 +278,14 @@ local function styleButton(btn, icon, title, desc, enabled)
 
     local stateL = Instance.new("TextLabel")
     stateL.Name = "State"
-    stateL.Size = UDim2.fromOffset(52, 24)
-    stateL.Position = UDim2.new(1, -64, 0.5, -12)
-    stateL.BackgroundColor3 = enabled and COLORS.Success or Color3.fromRGB(75, 60, 110)
+    stateL.Size = UDim2.fromOffset(62, 24)
+    stateL.Position = UDim2.new(1, -74, 0.5, -12)
+    stateL.BackgroundColor3 = enabled and COLORS.Success or Color3.fromRGB(70, 55, 115)
     stateL.BackgroundTransparency = enabled and 0.75 or 0
-    stateL.Text = enabled and "ON" or "OFF"
+    stateL.Text = enabled and "ATIVADO" or "DESLIGADO"
     stateL.TextColor3 = enabled and Color3.fromRGB(134, 239, 172) or COLORS.Muted
     stateL.Font = Enum.Font.GothamBold
-    stateL.TextSize = 11
+    stateL.TextSize = 10
     stateL.Parent = btn
     addCorner(stateL, 7)
     return stateL
@@ -314,6 +314,16 @@ KeyFrame.Parent = KeyGui
 addCorner(KeyFrame, 18)
 addStroke(KeyFrame, COLORS.Accent, 0.2, 1.5)
 
+-- Camada de fundo estética
+local KeyBg = Instance.new("Frame")
+KeyBg.Size = UDim2.fromScale(1, 1)
+KeyBg.BackgroundColor3 = Color3.fromRGB(15, 8, 25)
+KeyBg.BorderSizePixel = 0
+KeyBg.ZIndex = 0
+KeyBg.Parent = KeyFrame
+addCorner(KeyBg, 18)
+addGradient(KeyBg, Color3.fromRGB(50, 15, 95), Color3.fromRGB(8, 5, 15), 135)
+
 local KeyTop = Instance.new("Frame")
 KeyTop.Size = UDim2.new(1, 0, 0, 78)
 KeyTop.BackgroundColor3 = COLORS.Accent
@@ -336,7 +346,7 @@ local KeySub = Instance.new("TextLabel")
 KeySub.Size = UDim2.new(1, -40, 0, 18)
 KeySub.Position = UDim2.fromOffset(20, 46)
 KeySub.BackgroundTransparency = 1
-KeySub.Text = "Acesso ao portal celestial ✦"
+KeySub.Text = "Guardião das sombras ✦ MM2"
 KeySub.TextColor3 = Color3.fromRGB(233, 223, 255)
 KeySub.Font = Enum.Font.Gotham
 KeySub.TextSize = 12
@@ -356,7 +366,7 @@ KeyBox.Font = Enum.Font.Gotham
 KeyBox.TextSize = 14
 KeyBox.Parent = KeyFrame
 addCorner(KeyBox, 10)
-addStroke(KeyBox, Color3.fromRGB(110, 90, 160), 0.25, 1)
+addStroke(KeyBox, Color3.fromRGB(100, 80, 150), 0.25, 1)
 
 local EnterBtn = Instance.new("TextButton")
 EnterBtn.Size = UDim2.new(1, -40, 0, 44)
@@ -390,11 +400,11 @@ EnterBtn.MouseButton1Click:Connect(function()
     Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     Gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-    local MainShadow = addShadow(Gui, UDim2.fromOffset(412, 558), UDim2.fromScale(0.5, 0.5))
+    local MainShadow = addShadow(Gui, UDim2.fromOffset(412, 580), UDim2.fromScale(0.5, 0.5))
     MainShadow.AnchorPoint = Vector2.new(0.5, 0.5)
 
     local Main = Instance.new("Frame")
-    Main.Size = UDim2.fromOffset(400, 546)
+    Main.Size = UDim2.fromOffset(400, 568)
     Main.Position = UDim2.fromScale(0.5, 0.5)
     Main.AnchorPoint = Vector2.new(0.5, 0.5)
     Main.BackgroundColor3 = COLORS.Background
@@ -403,16 +413,36 @@ EnterBtn.MouseButton1Click:Connect(function()
     addCorner(Main, 20)
     addStroke(Main, COLORS.Accent, 0.15, 1.5)
 
-    -- Camada de fundo temático roxo
+    -- ===== FUNDO ESTILO SERAPHIM =====
+    -- Camada de fundo escuro com brilho roxo
     local BgLayer = Instance.new("Frame")
-    BgLayer.Name = "SeraphimBg"
+    BgLayer.Name = "SeraphimBackground"
     BgLayer.Size = UDim2.fromScale(1, 1)
-    BgLayer.BackgroundColor3 = Color3.fromRGB(15, 10, 25)
+    BgLayer.BackgroundColor3 = Color3.fromRGB(10, 5, 20)
     BgLayer.BorderSizePixel = 0
     BgLayer.ZIndex = 1
     BgLayer.Parent = Main
     addCorner(BgLayer, 20)
-    addGradient(BgLayer, Color3.fromRGB(60, 20, 110), Color3.fromRGB(12, 8, 20), 135)
+
+    -- Gradiente roxo celestial
+    local BgGradient = Instance.new("UIGradient")
+    BgGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 20, 120)),
+        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(25, 12, 50)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 3, 12))
+    }
+    BgGradient.Rotation = 135
+    BgGradient.Parent = BgLayer
+
+    -- Brilho suave
+    local GlowOverlay = Instance.new("Frame")
+    GlowOverlay.Size = UDim2.new(1, 0, 0.65, 0)
+    GlowOverlay.Position = UDim2.new(0, 0, -0.1, 0)
+    GlowOverlay.BackgroundColor3 = Color3.fromRGB(80, 40, 150)
+    GlowOverlay.BackgroundTransparency = 0.85
+    GlowOverlay.ZIndex = 2
+    GlowOverlay.Parent = BgLayer
+    addCorner(GlowOverlay, 0)
 
     -- Arrastar janela
     local dragging, dragStart, startPos = false, nil, nil
@@ -434,15 +464,29 @@ EnterBtn.MouseButton1Click:Connect(function()
     end)
 
     local Header = Instance.new("Frame")
-    Header.Size = UDim2.new(1, 0, 0, 92)
+    Header.Size = UDim2.new(1, 0, 0, 100)
     Header.BackgroundColor3 = COLORS.Accent
     Header.Parent = Main
     addCorner(Header, 20)
     addGradient(Header, COLORS.Accent, COLORS.AccentLight, 25)
 
+    -- Ícone do cabeçalho
+    local HeaderIcon = Instance.new("TextLabel")
+    HeaderIcon.Size = UDim2.fromOffset(44, 44)
+    HeaderIcon.Position = UDim2.new(0.5, -22, 0, 70)
+    HeaderIcon.BackgroundColor3 = COLORS.Surface
+    HeaderIcon.Text = "⚔️"
+    HeaderIcon.Font = Enum.Font.GothamBold
+    HeaderIcon.TextSize = 22
+    HeaderIcon.TextColor3 = COLORS.Text
+    HeaderIcon.ZIndex = 5
+    HeaderIcon.Parent = Main
+    addCorner(HeaderIcon, 12)
+    addStroke(HeaderIcon, COLORS.AccentLight, 0, 1.5)
+
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, -80, 0, 30)
-    Title.Position = UDim2.fromOffset(22, 17)
+    Title.Position = UDim2.fromOffset(22, 15)
     Title.BackgroundTransparency = 1
     Title.Text = "SERAPHIM HUB"
     Title.TextColor3 = COLORS.Text
@@ -453,9 +497,9 @@ EnterBtn.MouseButton1Click:Connect(function()
 
     local Subtitle = Instance.new("TextLabel")
     Subtitle.Size = UDim2.new(1, -80, 0, 18)
-    Subtitle.Position = UDim2.fromOffset(22, 51)
+    Subtitle.Position = UDim2.fromOffset(22, 52)
     Subtitle.BackgroundTransparency = 1
-    Subtitle.Text = "Guardião das sombras ✦ MM2"
+    Subtitle.Text = "Guardião das sombras • MM2"
     Subtitle.TextColor3 = Color3.fromRGB(233, 223, 255)
     Subtitle.Font = Enum.Font.Gotham
     Subtitle.TextSize = 12
@@ -477,9 +521,9 @@ EnterBtn.MouseButton1Click:Connect(function()
 
     local Section = Instance.new("TextLabel")
     Section.Size = UDim2.new(1, -40, 0, 20)
-    Section.Position = UDim2.fromOffset(20, 108)
+    Section.Position = UDim2.fromOffset(20, 125)
     Section.BackgroundTransparency = 1
-    Section.Text = "✦ CONTROLES"
+    Section.Text = "CONTROLES"
     Section.TextColor3 = COLORS.Muted
     Section.Font = Enum.Font.GothamBold
     Section.TextSize = 11
@@ -488,19 +532,19 @@ EnterBtn.MouseButton1Click:Connect(function()
 
     local function makeControl(y, icon, title, desc, enabled)
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, -40, 0, 50)
+        btn.Size = UDim2.new(1, -40, 0, 54)
         btn.Position = UDim2.fromOffset(20, y)
         btn.Parent = Main
         local state = styleButton(btn, icon, title, desc, enabled)
         return btn, state
     end
 
-    local ESPBtn, ESPState = makeControl(134, "E", "ESP DE ROLES", "Identifica o papel de cada jogador", ESP_ENABLED)
-    addHover(ESPBtn, COLORS.SurfaceLight, Color3.fromRGB(70, 50, 110))
+    local ESPBtn, ESPState = makeControl(150, "E", "ESP DE ROLES", "Identifica o papel de cada jogador", ESP_ENABLED)
+    addHover(ESPBth, COLORS.SurfaceLight, Color3.fromRGB(65, 45, 105))
     ESPBtn.MouseButton1Click:Connect(function()
         ESP_ENABLED = not ESP_ENABLED
-        ESPState.Text = ESP_ENABLED and "ON" or "OFF"
-        ESPState.BackgroundColor3 = ESP_ENABLED and COLORS.Success or Color3.fromRGB(75, 60, 110)
+        ESPState.Text = ESP_ENABLED and "ATIVADO" or "DESLIGADO"
+        ESPState.BackgroundColor3 = ESP_ENABLED and COLORS.Success or Color3.fromRGB(70, 55, 115)
         ESPState.BackgroundTransparency = ESP_ENABLED and 0.75 or 0
         ESPState.TextColor3 = ESP_ENABLED and Color3.fromRGB(134, 239, 172) or COLORS.Muted
         if not ESP_ENABLED then
@@ -508,42 +552,42 @@ EnterBtn.MouseButton1Click:Connect(function()
         end
     end)
 
-    local AimBtn, AimState = makeControl(194, "A", "AIM ASSIST", "Mira automaticamente no alvo", AIM_ENABLED)
-    addHover(AimBtn, COLORS.Surface, Color3.fromRGB(70, 50, 110))
+    local AimBtn, AimState = makeControl(214, "A", "AIM ASSIST", "Mira automaticamente no alvo", AIM_ENABLED)
+    addHover(AimBtn, COLORS.Surface, Color3.fromRGB(65, 45, 105))
     AimBtn.MouseButton1Click:Connect(function()
         AIM_ENABLED = not AIM_ENABLED
-        AimState.Text = AIM_ENABLED and "ON" or "OFF"
-        AimState.BackgroundColor3 = AIM_ENABLED and COLORS.Success or Color3.fromRGB(75, 60, 110)
+        AimState.Text = AIM_ENABLED and "ATIVADO" or "DESLIGADO"
+        AimState.BackgroundColor3 = AIM_ENABLED and COLORS.Success or Color3.fromRGB(70, 55, 115)
         AimState.BackgroundTransparency = AIM_ENABLED and 0.75 or 0
         AimState.TextColor3 = AIM_ENABLED and Color3.fromRGB(134, 239, 172) or COLORS.Muted
     end)
 
-    local NoclipBtn, NoclipState = makeControl(254, "N", "NOCLIP", "Atravessa paredes", NOCLIP_ENABLED)
-    addHover(NoclipBtn, COLORS.Surface, Color3.fromRGB(70, 50, 110))
+    local NoclipBtn, NoclipState = makeControl(278, "N", "NOCLIP", "Atravessa paredes", NOCLIP_ENABLED)
+    addHover(NoclipBtn, COLORS.Surface, Color3.fromRGB(65, 45, 105))
     NoclipBtn.MouseButton1Click:Connect(function()
         setNoclip(not NOCLIP_ENABLED)
-        NoclipState.Text = NOCLIP_ENABLED and "ON" or "OFF"
-        NoclipState.BackgroundColor3 = NOCLIP_ENABLED and COLORS.Success or Color3.fromRGB(75, 60, 110)
+        NoclipState.Text = NOCLIP_ENABLED and "ATIVADO" or "DESLIGADO"
+        NoclipState.BackgroundColor3 = NOCLIP_ENABLED and COLORS.Success or Color3.fromRGB(70, 55, 115)
         NoclipState.BackgroundTransparency = NOCLIP_ENABLED and 0.75 or 0
         NoclipState.TextColor3 = NOCLIP_ENABLED and Color3.fromRGB(134, 239, 172) or COLORS.Muted
     end)
 
-    local JumpBtn, JumpState = makeControl(314, "J", "INFINITE JUMP", "Pule infinitamente", INFINITE_JUMP_ENABLED)
-    addHover(JumpBtn, COLORS.Surface, Color3.fromRGB(70, 50, 110))
+    local JumpBtn, JumpState = makeControl(342, "J", "INFINITE JUMP", "Pule infinitamente", INFINITE_JUMP_ENABLED)
+    addHover(JumpBtn, COLORS.Surface, Color3.fromRGB(65, 45, 105))
     JumpBtn.MouseButton1Click:Connect(function()
         INFINITE_JUMP_ENABLED = not INFINITE_JUMP_ENABLED
-        JumpState.Text = INFINITE_JUMP_ENABLED and "ON" or "OFF"
-        JumpState.BackgroundColor3 = INFINITE_JUMP_ENABLED and COLORS.Success or Color3.fromRGB(75, 60, 110)
+        JumpState.Text = INFINITE_JUMP_ENABLED and "ATIVADO" or "DESLIGADO"
+        JumpState.BackgroundColor3 = INFINITE_JUMP_ENABLED and COLORS.Success or Color3.fromRGB(70, 55, 115)
         JumpState.BackgroundTransparency = INFINITE_JUMP_ENABLED and 0.75 or 0
         JumpState.TextColor3 = INFINITE_JUMP_ENABLED and Color3.fromRGB(134, 239, 172) or COLORS.Muted
     end)
 
     local Footer = Instance.new("TextLabel")
     Footer.Size = UDim2.new(1, -40, 0, 20)
-    Footer.Position = UDim2.fromOffset(20, 510)
+    Footer.Position = UDim2.fromOffset(20, 535)
     Footer.BackgroundTransparency = 1
     Footer.Text = "✦ SERAPHIM HUB — Que a luz te guie ✦"
-    Footer.TextColor3 = Color3.fromRGB(179, 153, 212)
+    Footer.TextColor3 = Color3.fromRGB(160, 140, 200)
     Footer.Font = Enum.Font.Gotham
     Footer.TextSize = 10
     Footer.TextXAlignment = Enum.TextXAlignment.Center
