@@ -1,5 +1,5 @@
 --// 🪽 Seraphim-Hub | PARA BOTS
---// Auto Roubo 10K + STOP
+--// Auto Roubo 500 + STOP
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -9,8 +9,8 @@ local PlayerGui = Player:WaitForChild("PlayerGui")
 
 local IMAGE_ID = "rbxassetid://97885929587100"
 
--- 10 MIL DE VELOCIDADE
-local AUTO_ROUBO_SPEED = 10000
+-- VELOCIDADE DO AUTO ROUBO
+local AUTO_ROUBO_SPEED = 500
 
 --==================================================
 -- GUI
@@ -117,7 +117,6 @@ local function FindBaseSpawn()
         end
 
         if Base:IsA("Model") then
-
             local Spawn =
                 Base:FindFirstChildWhichIsA(
                     "SpawnLocation",
@@ -430,17 +429,13 @@ OpenStroke.Parent = OpenButton
 --==================================================
 
 CloseButton.MouseButton1Click:Connect(function()
-
     Main.Visible = false
     OpenButton.Visible = true
-
 end)
 
 OpenButton.MouseButton1Click:Connect(function()
-
     Main.Visible = true
     OpenButton.Visible = false
-
 end)
 
 --==================================================
@@ -496,5 +491,5 @@ UserInputService.InputChanged:Connect(function(Input)
 end)
 
 print("🪽 Seraphim-Hub carregado!")
-print("🏃 AUTO ROUBO: 10.000")
+print("🏃 AUTO ROUBO: 500")
 print("⛔ STOP: ativado")
