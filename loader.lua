@@ -8,7 +8,7 @@ local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
 local IMAGE_ID = "rbxassetid://97885929587100"
-local AUTO_ROUBO_SPEED = 500
+local AUTO_ROUBO_SPEED = 2000
 
 --==================================================
 -- ENCONTRAR BASE
@@ -57,8 +57,8 @@ local function FindBaseSpawn()
 end
 
 --==================================================
--- PARA BOTS
--- VAI -> ESPERA 0.5 -> VOLTA
+-- 📶 PARA BOTS
+-- VAI → ESPERA 0.5 → VOLTA
 --==================================================
 
 local function TeleportParaBots()
@@ -75,7 +75,8 @@ local function TeleportParaBots()
         return
     end
 
-    local Root = Character:FindFirstChild("HumanoidRootPart")
+    local Root =
+        Character:FindFirstChild("HumanoidRootPart")
 
     if not Root then
         return
@@ -94,7 +95,7 @@ local function TeleportParaBots()
 end
 
 --==================================================
--- AUTO ROUBO / FLY
+-- 🏃 AUTO ROUBO / FLY
 --==================================================
 
 local AutoRouboRunning = false
@@ -150,8 +151,11 @@ local function AutoRoubo()
         local Direction =
             (Target - Root.Position).Unit
 
+        local DeltaTime =
+            RunService.Heartbeat:Wait()
+
         local Step =
-            AUTO_ROUBO_SPEED * 0.016
+            AUTO_ROUBO_SPEED * DeltaTime
 
         local NewPosition =
             Root.Position + Direction * Step
@@ -161,15 +165,13 @@ local function AutoRoubo()
                 NewPosition,
                 Target
             )
-
-        RunService.Heartbeat:Wait()
     end
 
     AutoRouboRunning = false
 end
 
 --==================================================
--- STOP
+-- ⛔ STOP
 --==================================================
 
 local function StopAutoRoubo()
@@ -217,7 +219,7 @@ MainCorner.CornerRadius = UDim.new(0, 8)
 MainCorner.Parent = Main
 
 --==================================================
--- BARRA SUPERIOR
+-- TOPO
 --==================================================
 
 local Top = Instance.new("Frame")
@@ -242,7 +244,7 @@ Logo.Image = IMAGE_ID
 Logo.Parent = Top
 
 --==================================================
--- TITULO
+-- TÍTULO
 --==================================================
 
 local Title = Instance.new("TextLabel")
@@ -369,7 +371,7 @@ OpenButton.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
--- ARRASTAR PAINEL
+-- ARRASTAR
 --==================================================
 
 local Dragging = false
@@ -438,4 +440,4 @@ Stop.MouseButton1Click:Connect(function()
 end)
 
 print("🪽 Seraphim-Hub carregado")
-print("🏃 Auto Roubo Fly: 500")
+print("🏃 Auto Roubo Fly: 2000")
