@@ -1,5 +1,5 @@
 --// 🪽 Seraphim-Hub | PARA BOTS
---// Auto Roubo 500T + STOP
+--// Auto Roubo 500B + STOP
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -8,7 +8,9 @@ local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
 local IMAGE_ID = "rbxassetid://97885929587100"
-local AUTO_ROUBO_SPEED = 500000000000 -- 500T
+
+-- 500 bilhões
+local AUTO_ROUBO_SPEED = 500000000000
 
 --==================================================
 -- GUI
@@ -163,7 +165,7 @@ local function FindBaseSpawn()
 end
 
 --==================================================
--- TELEPORTE
+-- TELEPORTE PARA BASE
 --==================================================
 
 local function TeleportToBase()
@@ -442,7 +444,7 @@ OpenButton.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
--- ARRASTAR
+-- ARRASTAR PAINEL
 --==================================================
 
 local Dragging = false
@@ -495,5 +497,5 @@ UserInputService.InputChanged:Connect(function(Input)
 end)
 
 print("🪽 Seraphim-Hub carregado!")
-print("🏃 AUTO ROUBO: 500T")
+print("🏃 AUTO ROUBO: 500B")
 print("⛔ STOP: ativado")
