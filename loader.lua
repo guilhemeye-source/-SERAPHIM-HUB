@@ -1,14 +1,13 @@
---// 🪽 SERAPHIM-HUB - VERSÃO CORRIGIDA
---// Painel compacto para seu próprio jogo no Roblox Studio
+--// 🪽 SERAPHIM-HUB - Versão BOST
+--// Só Teleporte ao pegar ovo
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local Player = Players.LocalPlayer
-
-local AutoRoubar = false
-local Velocidade = 16
-local PararRoubo = false
+local AtivarBost = false
+local UltimoOvo = nil
 
 -- Coloque o ID da imagem do SERAPHIM aqui
 local SERAPHIM_IMAGE = "rbxassetid://SEU_ID_DA_IMAGEM"
@@ -29,8 +28,8 @@ ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
 local Main = Instance.new("Frame")
 Main.Name = "Main"
-Main.Size = UDim2.fromOffset(320, 235)
-Main.Position = UDim2.new(0.5, -160, 0.5, -117)
+Main.Size = UDim2.fromOffset(300, 160)
+Main.Position = UDim2.new(0.5, -150, 0.5, -80)
 Main.BackgroundColor3 = Color3.fromRGB(15, 18, 25)
 Main.BorderSizePixel = 0
 Main.Parent = ScreenGui
@@ -62,15 +61,15 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -55, 1, 0)
 Title.Position = UDim2.fromOffset(10, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "🪽 SERAPHIM-HUB"
+Title.Text = "🪽 BOST"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 15
+Title.TextSize = 16
 Title.Font = Enum.Font.GothamBold
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Top
 
 --==================================================
--- BOTÃO X
+-- BOTÃO FECHAR
 --==================================================
 
 local CloseButton = Instance.new("TextButton")
@@ -89,279 +88,127 @@ CloseCorner.CornerRadius = UDim.new(0, 7)
 CloseCorner.Parent = CloseButton
 
 --==================================================
--- ABAS
---==================================================
-
-local Tabs = Instance.new("Frame")
-Tabs.Size = UDim2.new(0, 85, 1, -38)
-Tabs.Position = UDim2.fromOffset(0, 38)
-Tabs.BackgroundColor3 = Color3.fromRGB(12, 15, 22)
-Tabs.BorderSizePixel = 0
-Tabs.Parent = Main
-
-local function CreateTabButton(Text, Y)
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(1, -10, 0, 34)
-    Button.Position = UDim2.fromOffset(5, Y)
-    Button.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
-    Button.BorderSizePixel = 0
-    Button.Text = Text
-    Button.TextColor3 = Color3.fromRGB(220, 225, 235)
-    Button.TextSize = 11
-    Button.Font = Enum.Font.GothamSemibold
-    Button.Parent = Tabs
-
-    local C = Instance.new("UICorner")
-    C.CornerRadius = UDim.new(0, 6)
-    C.Parent = Button
-
-    return Button
-end
-
-local MainTabButton = CreateTabButton("Automação", 10)
-local TeleportTabButton = CreateTabButton("Teleportes", 50)
-
---==================================================
--- CONTEÚDO
---==================================================
-
-local Content = Instance.new("Frame")
-Content.Size = UDim2.new(1, -85, 1, -38)
-Content.Position = UDim2.fromOffset(85, 38)
-Content.BackgroundTransparency = 1
-Content.Parent = Main
-
-local Automation = Instance.new("Frame")
-Automation.Size = UDim2.fromScale(1, 1)
-Automation.BackgroundTransparency = 1
-Automation.Parent = Content
-
-local Teleports = Instance.new("Frame")
-Teleports.Size = UDim2.fromScale(1, 1)
-Teleports.BackgroundTransparency = 1
-Teleports.Visible = false
-Teleports.Parent = Content
-
---==================================================
--- CRIAR BOTÃO
---==================================================
-
-local function CreateButton(Parent, Text, Y)
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(1, -20, 0, 34)
-    Button.Position = UDim2.fromOffset(10, Y)
-    Button.BackgroundColor3 = Color3.fromRGB(25, 30, 42)
-    Button.BorderSizePixel = 0
-    Button.Text = Text
-    Button.TextColor3 = Color3.fromRGB(240, 240, 245)
-    Button.TextSize = 11
-    Button.Font = Enum.Font.GothamSemibold
-    Button.Parent = Parent
-
-    local C = Instance.new("UICorner")
-    C.CornerRadius = UDim.new(0, 6)
-    C.Parent = Button
-
-    return Button
-end
-
---==================================================
--- AUTO ROUBAR
---==================================================
-
-local AutoButton = CreateButton(Automation, "Auto Roubar Ovos: DESLIGADO", 12)
-
-AutoButton.MouseButton1Click:Connect(function()
-    AutoRoubar = not AutoRoubar
-    PararRoubo = false
-
-    if AutoRoubar then
-        AutoButton.Text = "Auto Roubar Ovos: LIGADO"
-        AutoButton.BackgroundColor3 = Color3.fromRGB(0, 100, 210)
-        print("SERAPHIM: Auto Roubar ativado")
-    else
-        AutoButton.Text = "Auto Roubar Ovos: DESLIGADO"
-        AutoButton.BackgroundColor3 = Color3.fromRGB(25, 30, 42)
-        print("SERAPHIM: Auto Roubar desativado")
-    end
-end)
-
---==================================================
--- STOP
---==================================================
-
-local StopButton = CreateButton(Automation, "⛔ STOP", 54)
-
-StopButton.MouseButton1Click:Connect(function()
-    AutoRoubar = false
-    PararRoubo = true
-    AutoButton.Text = "Auto Roubar Ovos: DESLIGADO"
-    AutoButton.BackgroundColor3 = Color3.fromRGB(25, 30, 42)
-    print("SERAPHIM: automação parada")
-end)
-
---==================================================
--- VELOCIDADE
---==================================================
-
-local SpeedButton = CreateButton(Automation, "Velocidade: 16", 96)
-
-SpeedButton.MouseButton1Click:Connect(function()
-    Velocidade += 10
-    if Velocidade > 150 then
-        Velocidade = 16
-    end
-    SpeedButton.Text = "Velocidade: " .. Velocidade
-
-    local Character = Player.Character
-    local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
-    if Humanoid then
-        Humanoid.WalkSpeed = Velocidade
-    end
-end)
-
---==================================================
--- FUNÇÃO PARA ENCONTRAR SPAWN
+-- FUNÇÃO: ENCONTRAR BASE
 --==================================================
 
 local function FindBaseSpawn()
-    -- 1. Procura uma pasta/objeto chamada Base
     local Base = workspace:FindFirstChild("Base", true)
     if Base then
-        if Base:IsA("SpawnLocation") then
-            return Base
-        end
+        if Base:IsA("SpawnLocation") then return Base end
         if Base:IsA("Model") then
             local Spawn = Base:FindFirstChildWhichIsA("SpawnLocation", true)
             if Spawn then return Spawn end
         end
-        if Base:IsA("BasePart") then
-            return Base
-        end
+        if Base:IsA("BasePart") then return Base end
     end
 
-    -- 2. Procura SpawnLocations no Workspace
     local Spawns = {}
-    for _, Object in ipairs(workspace:GetDescendants()) do
-        if Object:IsA("SpawnLocation") then
-            table.insert(Spawns, Object)
+    for _, Obj in ipairs(workspace:GetDescendants()) do
+        if Obj:IsA("SpawnLocation") then
+            table.insert(Spawns, Obj)
         end
     end
 
-    -- 3. Se houver apenas um SpawnLocation, usa ele automaticamente
-    if #Spawns == 1 then
-        return Spawns[1]
-    end
+    if #Spawns == 1 then return Spawns[1] end
 
-    -- 4. Tenta encontrar nomes relacionados à base
     for _, Spawn in ipairs(Spawns) do
-        local Name = string.lower(Spawn.Name)
-        if Name:find("base") or Name:find("spawn") or Name:find("home") then
+        local Nome = string.lower(Spawn.Name)
+        if Nome:find("base") or Nome:find("spawn") or Nome:find("home") then
             return Spawn
         end
     end
 
-    warn("SERAPHIM: Spawn não encontrado! Verifique se há um objeto chamado 'Base' ou 'SpawnLocation' no jogo.")
+    warn("BOST: Ponto da Base não encontrado!")
     return nil
 end
 
 --==================================================
--- TELEPORTAR PARA BASE - ✅ CORRIGIDO (NÃO VOLTA)
+-- FUNÇÃO: TELEPORTAR
 --==================================================
 
-local function TeleportToBase()
-    local Point = FindBaseSpawn()
-    if not Point then
-        warn("SERAPHIM: Nenhum Spawn encontrado!")
-        return
-    end
+local function TeleportParaBase()
+    local Ponto = FindBaseSpawn()
+    if not Ponto then return end
 
-    local Character = Player.Character
-    if not Character then return end
-    
-    local Root = Character:FindFirstChild("HumanoidRootPart")
-    local Humanoid = Character:FindFirstChild("Humanoid")
+    local Char = Player.Character
+    if not Char then return end
+
+    local Root = Char:FindFirstChild("HumanoidRootPart")
+    local Humanoid = Char:FindFirstChild("Humanoid")
     if not Root or not Humanoid then return end
 
-    -- PARA TODO MOVIMENTO ANTES DE TELEPORTAR
     Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running, false)
-    Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
     Humanoid.PlatformStand = true
 
-    -- Posição estável e com altura correta
-    local NovaPosicao = Point.CFrame + Vector3.new(0, 4, 0)
-    
-    -- DUPLA garantia de posição
-    Root.CFrame = NovaPosicao
+    local PosicaoFinal = Ponto.CFrame + Vector3.new(0, 4, 0)
+    Root.CFrame = PosicaoFinal
     task.wait()
-    Root.CFrame = NovaPosicao
+    Root.CFrame = PosicaoFinal
 
-    -- Libera movimento DEPOIS de confirmar
     task.wait(0.15)
     if Humanoid then
         Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running, true)
         Humanoid.PlatformStand = false
     end
 
-    print("SERAPHIM: Ficou no lugar! ✅")
+    print("BOST: Teleportado ✅")
 end
 
 --==================================================
--- BOTÃO BASE
+-- BOTÃO PRINCIPAL
 --==================================================
 
-local TeleportBase = CreateButton(Teleports, "🏠 Teleportar para Base", 12)
-TeleportBase.MouseButton1Click:Connect(function()
-    TeleportToBase()
-end)
+local BotaoBOST = Instance.new("TextButton")
+BotaoBOST.Size = UDim2.new(1, -20, 0, 45)
+BotaoBOST.Position = UDim2.fromOffset(10, 55)
+BotaoBOST.BackgroundColor3 = Color3.fromRGB(25, 30, 42)
+BotaoBOST.BorderSizePixel = 0
+BotaoBOST.Text = "BOST: DESLIGADO"
+BotaoBOST.TextColor3 = Color3.fromRGB(240, 240, 245)
+BotaoBOST.TextSize = 13
+BotaoBOST.Font = Enum.Font.GothamSemibold
+BotaoBOST.Parent = Main
 
---==================================================
--- TELEPORTE PARA CIMA - ✅ CORRIGIDO
---==================================================
+local BotaoCorner = Instance.new("UICorner")
+BotaoCorner.CornerRadius = UDim.new(0, 8)
+BotaoCorner.Parent = BotaoBOST
 
-local TeleportUp = CreateButton(Teleports, "⬆️ Teleportar para Cima", 54)
-TeleportUp.MouseButton1Click:Connect(function()
-    local Character = Player.Character
-    if not Character then return end
-    
-    local Root = Character:FindFirstChild("HumanoidRootPart")
-    local Humanoid = Character:FindFirstChild("Humanoid")
-    if not Root or not Humanoid then return end
-
-    Humanoid.Sit = false
-    Humanoid.PlatformStand = true
-
-    local NovaPosicao = Root.CFrame + Vector3.new(0, 100, 0)
-    Root.CFrame = NovaPosicao
-
-    task.wait(0.1)
-    if Humanoid then
-        Humanoid.PlatformStand = false
+BotaoBOST.MouseButton1Click:Connect(function()
+    AtivarBost = not AtivarBost
+    if AtivarBost then
+        BotaoBOST.Text = "BOST: LIGADO ✅"
+        BotaoBOST.BackgroundColor3 = Color3.fromRGB(0, 100, 210)
+        print("BOST: Ativado — teleporta ao pegar ovo")
+    else
+        BotaoBOST.Text = "BOST: DESLIGADO"
+        BotaoBOST.BackgroundColor3 = Color3.fromRGB(25, 30, 42)
+        UltimoOvo = nil
+        print("BOST: Desativado")
     end
-
-    print("SERAPHIM: Subiu ✅")
 end)
 
 --==================================================
--- ABAS
+-- DETECTAR QUANDO PEGAR OVO
 --==================================================
 
-MainTabButton.MouseButton1Click:Connect(function()
-    Automation.Visible = true
-    Teleports.Visible = false
-    MainTabButton.BackgroundColor3 = Color3.fromRGB(0, 100, 210)
-    TeleportTabButton.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
-end)
+RunService.Heartbeat:Connect(function()
+    if not AtivarBost then return end
 
-TeleportTabButton.MouseButton1Click:Connect(function()
-    Automation.Visible = false
-    Teleports.Visible = true
-    MainTabButton.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
-    TeleportTabButton.BackgroundColor3 = Color3.fromRGB(0, 100, 210)
+    local Char = Player.Character
+    if not Char then return end
+
+    local Pasta = Char:FindFirstChild("HoldItem") or Char:FindFirstChild("EquippedItem") or Char:FindFirstChild("Ovo")
+    local TemOvo = Pasta and Pasta:FindFirstChildWhichIsA("BasePart") or Pasta and Pasta:FindFirstChild("Model")
+
+    if TemOvo and TemOvo ~= UltimoOvo then
+        UltimoOvo = TemOvo
+        task.wait(0.05)
+        TeleportParaBase()
+    end
 end)
 
 --==================================================
--- BOLINHA SERAPHIM
+-- BOLINHA PARA REABRIR
 --==================================================
 
 local OpenButton = Instance.new("ImageButton")
@@ -384,17 +231,13 @@ OpenStroke.Thickness = 2
 OpenStroke.Parent = OpenButton
 
 --==================================================
--- FECHAR
+-- ABRIR / FECHAR
 --==================================================
 
 CloseButton.MouseButton1Click:Connect(function()
     Main.Visible = false
     OpenButton.Visible = true
 end)
-
---==================================================
--- ABRIR
---==================================================
 
 OpenButton.MouseButton1Click:Connect(function()
     Main.Visible = true
@@ -405,40 +248,35 @@ end)
 -- ARRASTAR
 --==================================================
 
-local Dragging = false
-local DragStart
-local StartPosition
+local Arrastando = false
+local InicioPosicao, InicioTela
 
 Top.InputBegan:Connect(function(Input)
-    if Input.UserInputType == Enum.UserInputType.MouseButton1
-        or Input.UserInputType == Enum.UserInputType.Touch then
-        Dragging = true
-        DragStart = Input.Position
-        StartPosition = Main.Position
-
+    if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+        Arrastando = true
+        InicioTela = Input.Position
+        InicioPosicao = Main.Position
         Input.Changed:Connect(function()
             if Input.UserInputState == Enum.UserInputState.End then
-                Dragging = false
+                Arrastando = false
             end
         end)
     end
 end)
 
 UserInputService.InputChanged:Connect(function(Input)
-    if not Dragging then return end
-    if Input.UserInputType == Enum.UserInputType.MouseMovement
-        or Input.UserInputType == Enum.UserInputType.Touch then
-        local Delta = Input.Position - DragStart
+    if not Arrastando then return end
+    if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch then
+        local Delta = Input.Position - InicioTela
         Main.Position = UDim2.new(
-            StartPosition.X.Scale, StartPosition.X.Offset + Delta.X,
-            StartPosition.Y.Scale, StartPosition.Y.Offset + Delta.Y
+            InicioPosicao.X.Scale, InicioPosicao.X.Offset + Delta.X,
+            InicioPosicao.Y.Scale, InicioPosicao.Y.Offset + Delta.Y
         )
     end
 end)
 
 --==================================================
--- INICIALIZAÇÃO
+-- INICIO
 --==================================================
 
-MainTabButton.BackgroundColor3 = Color3.fromRGB(0, 100, 210)
-print("🪽 SERAPHIM-HUB carregado!")
+print("🪽 BOST carregado! Clique para LIGAR")
