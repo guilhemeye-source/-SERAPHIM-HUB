@@ -1,16 +1,10 @@
---// 🪽 SERAPHIM-HUB - Versão BOST
---// Só Teleporte ao pegar ovo
+--// 🪽 Seraphim-Hub | PARA BOTS
+--// Clica para Teleportar
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 
 local Player = Players.LocalPlayer
-local AtivarBost = false
-local UltimoOvo = nil
-
--- Coloque o ID da imagem do SERAPHIM aqui
-local SERAPHIM_IMAGE = "rbxassetid://SEU_ID_DA_IMAGEM"
 
 --==================================================
 -- GUI
@@ -61,7 +55,7 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -55, 1, 0)
 Title.Position = UDim2.fromOffset(10, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "🪽 BOST"
+Title.Text = "🪽 Seraphim-Hub"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 16
 Title.Font = Enum.Font.GothamBold
@@ -118,32 +112,33 @@ local function FindBaseSpawn()
         end
     end
 
-    warn("BOST: Ponto da Base não encontrado!")
+    warn("Seraphim-Hub: Ponto da Base não encontrado!")
     return nil
 end
 
 --==================================================
--- FUNÇÃO: TELEPORTAR
+-- FUNÇÃO: TELEPORTAR PARA BASE
 --==================================================
 
-local function TeleportParaBase()
-    local Ponto = FindBaseSpawn()
-    if not Ponto then return end
+local function TeleportToBase()
+    local Point = FindBaseSpawn()
+    if not Point then return end
 
-    local Char = Player.Character
-    if not Char then return end
-
-    local Root = Char:FindFirstChild("HumanoidRootPart")
-    local Humanoid = Char:FindFirstChild("Humanoid")
+    local Character = Player.Character
+    if not Character then return end
+    
+    local Root = Character:FindFirstChild("HumanoidRootPart")
+    local Humanoid = Character:FindFirstChild("Humanoid")
     if not Root or not Humanoid then return end
 
     Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running, false)
+    Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
     Humanoid.PlatformStand = true
 
-    local PosicaoFinal = Ponto.CFrame + Vector3.new(0, 4, 0)
-    Root.CFrame = PosicaoFinal
+    local NovaPosicao = Point.CFrame + Vector3.new(0, 4, 0)
+    Root.CFrame = NovaPosicao
     task.wait()
-    Root.CFrame = PosicaoFinal
+    Root.CFrame = NovaPosicao
 
     task.wait(0.15)
     if Humanoid then
@@ -151,84 +146,51 @@ local function TeleportParaBase()
         Humanoid.PlatformStand = false
     end
 
-    print("BOST: Teleportado ✅")
+    print("Seraphim-Hub: PARA BOTS — Teleportado ✅")
 end
 
 --==================================================
--- BOTÃO PRINCIPAL
+-- BOTÃO PARA BOTS
 --==================================================
 
-local BotaoBOST = Instance.new("TextButton")
-BotaoBOST.Size = UDim2.new(1, -20, 0, 45)
-BotaoBOST.Position = UDim2.fromOffset(10, 55)
-BotaoBOST.BackgroundColor3 = Color3.fromRGB(25, 30, 42)
-BotaoBOST.BorderSizePixel = 0
-BotaoBOST.Text = "BOST: DESLIGADO"
-BotaoBOST.TextColor3 = Color3.fromRGB(240, 240, 245)
-BotaoBOST.TextSize = 13
-BotaoBOST.Font = Enum.Font.GothamSemibold
-BotaoBOST.Parent = Main
+local BostButton = Instance.new("TextButton")
+BostButton.Size = UDim2.new(1, -20, 0, 45)
+BostButton.Position = UDim2.fromOffset(10, 55)
+BostButton.BackgroundColor3 = Color3.fromRGB(0, 100, 210)
+BostButton.BorderSizePixel = 0
+BostButton.Text = "🏠 PARA BOTS"
+BostButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+BostButton.TextSize = 15
+BostButton.Font = Enum.Font.GothamBold
+BostButton.Parent = Main
 
-local BotaoCorner = Instance.new("UICorner")
-BotaoCorner.CornerRadius = UDim.new(0, 8)
-BotaoCorner.Parent = BotaoBOST
+local BostCorner = Instance.new("UICorner")
+BostCorner.CornerRadius = UDim.new(0, 8)
+BostCorner.Parent = BostButton
 
-BotaoBOST.MouseButton1Click:Connect(function()
-    AtivarBost = not AtivarBost
-    if AtivarBost then
-        BotaoBOST.Text = "BOST: LIGADO ✅"
-        BotaoBOST.BackgroundColor3 = Color3.fromRGB(0, 100, 210)
-        print("BOST: Ativado — teleporta ao pegar ovo")
-    else
-        BotaoBOST.Text = "BOST: DESLIGADO"
-        BotaoBOST.BackgroundColor3 = Color3.fromRGB(25, 30, 42)
-        UltimoOvo = nil
-        print("BOST: Desativado")
-    end
+BostButton.MouseButton1Click:Connect(function()
+    TeleportToBase()
 end)
 
 --==================================================
--- DETECTAR QUANDO PEGAR OVO
+-- BOTÃO REABRIR
 --==================================================
 
-RunService.Heartbeat:Connect(function()
-    if not AtivarBost then return end
-
-    local Char = Player.Character
-    if not Char then return end
-
-    local Pasta = Char:FindFirstChild("HoldItem") or Char:FindFirstChild("EquippedItem") or Char:FindFirstChild("Ovo")
-    local TemOvo = Pasta and Pasta:FindFirstChildWhichIsA("BasePart") or Pasta and Pasta:FindFirstChild("Model")
-
-    if TemOvo and TemOvo ~= UltimoOvo then
-        UltimoOvo = TemOvo
-        task.wait(0.05)
-        TeleportParaBase()
-    end
-end)
-
---==================================================
--- BOLINHA PARA REABRIR
---==================================================
-
-local OpenButton = Instance.new("ImageButton")
-OpenButton.Name = "SeraphimOpen"
-OpenButton.Size = UDim2.fromOffset(62, 62)
-OpenButton.Position = UDim2.fromOffset(18, 180)
+local OpenButton = Instance.new("TextButton")
+OpenButton.Name = "Reabrir"
+OpenButton.Size = UDim2.fromOffset(60, 60)
+OpenButton.Position = UDim2.fromOffset(18, 200)
 OpenButton.BackgroundColor3 = Color3.fromRGB(10, 10, 18)
-OpenButton.BorderSizePixel = 0
-OpenButton.Image = SERAPHIM_IMAGE
+OpenButton.Text = "SH"
+OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+OpenButton.TextSize = 14
+OpenButton.Font = Enum.Font.GothamBold
 OpenButton.Visible = false
 OpenButton.Parent = ScreenGui
 
 local OpenCorner = Instance.new("UICorner")
 OpenCorner.CornerRadius = UDim.new(1, 0)
 OpenCorner.Parent = OpenButton
-
-local OpenStroke = Instance.new("UIStroke")
-OpenStroke.Color = Color3.fromRGB(130, 70, 255)
-OpenStroke.Thickness = 2
-OpenStroke.Parent = OpenButton
 
 --==================================================
 -- ABRIR / FECHAR
@@ -245,38 +207,41 @@ OpenButton.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
--- ARRASTAR
+-- ARRASTAR JANELA
 --==================================================
 
-local Arrastando = false
-local InicioPosicao, InicioTela
+local Dragging = false
+local DragStart, StartPos
 
 Top.InputBegan:Connect(function(Input)
-    if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-        Arrastando = true
-        InicioTela = Input.Position
-        InicioPosicao = Main.Position
+    if Input.UserInputType == Enum.UserInputType.MouseButton1
+    or Input.UserInputType == Enum.UserInputType.Touch then
+        Dragging = true
+        DragStart = Input.Position
+        StartPos = Main.Position
+        
         Input.Changed:Connect(function()
             if Input.UserInputState == Enum.UserInputState.End then
-                Arrastando = false
+                Dragging = false
             end
         end)
     end
 end)
 
 UserInputService.InputChanged:Connect(function(Input)
-    if not Arrastando then return end
-    if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch then
-        local Delta = Input.Position - InicioTela
+    if not Dragging then return end
+    if Input.UserInputType == Enum.UserInputType.MouseMovement
+    or Input.UserInputType == Enum.UserInputType.Touch then
+        local Delta = Input.Position - DragStart
         Main.Position = UDim2.new(
-            InicioPosicao.X.Scale, InicioPosicao.X.Offset + Delta.X,
-            InicioPosicao.Y.Scale, InicioPosicao.Y.Offset + Delta.Y
+            StartPos.X.Scale, StartPos.X.Offset + Delta.X,
+            StartPos.Y.Scale, StartPos.Y.Offset + Delta.Y
         )
     end
 end)
 
 --==================================================
--- INICIO
+-- INÍCIO
 --==================================================
 
-print("🪽 BOST carregado! Clique para LIGAR")
+print("🪽 Seraphim-Hub carregado! Clica em PARA BOTS para teleportar!")
