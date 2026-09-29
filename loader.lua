@@ -1,172 +1,109 @@
--- =====================================================================
--- SERAPHIM-HUB | VERSÃO CORRIGIDA
--- =====================================================================
+-- ============================================================
+-- 💙 SERAPHIM-HUB | DIAGNÓSTICO
+-- ============================================================
 
--- Inicializa a biblioteca visual Sirius Rayfield
-local Rayfield = loadstring(game:HttpGet("https://sirius.menu"))()
+print("SERAPHIM-HUB: iniciando...")
 
-local Window = Rayfield:CreateWindow({
-    Name = "💙 Seraphim-Hub | Steal an Egg 🥚",
-    LoadingTitle = "Iniciando Seraphim-Hub...",
-    LoadingSubtitle = "Versão Mobile Estabilizada",
+-- ============================================================
+-- CARREGAMENTO DO RAYFIELD
+-- ============================================================
 
-    ConfigurationSaving = {
-        Enabled = false
-    },
+local success, Rayfield = pcall(function()
+    return loadstring(game:HttpGet("https://sirius.menu"))()
+end)
 
-    Discord = {
-        Enabled = false,
-        Invite = "",
-        RememberJoins = false
-    },
-
-    KeySystem = false
-})
-
--- Localiza a pasta de ovos
-local EggsFolder =
-    workspace:FindFirstChild("Eggs")
-    or workspace:FindFirstChild("EggSpawns")
-
--- Função para localizar uma peça física dentro do objeto
-local function getBasePart(obj)
-    if not obj then
-        return nil
-    end
-
-    if obj:IsA("BasePart") then
-        return obj
-    end
-
-    if obj:IsA("Model") then
-        if obj.PrimaryPart then
-            return obj.PrimaryPart
-        end
-
-        return obj:FindFirstChildWhichIsA("BasePart", true)
-    end
-
-    return obj:FindFirstChildWhichIsA("BasePart", true)
+if not success or not Rayfield then
+    warn("SERAPHIM-HUB: não foi possível carregar o Rayfield.")
+    warn("Erro:", Rayfield)
+    return
 end
 
--- Função estrutural para mover o objeto até o personagem
-local function roubarOvo(ovo)
-    local player = game.Players.LocalPlayer
+print("SERAPHIM-HUB: Rayfield carregado.")
 
-    if not player or not ovo then
-        return
-    end
+-- ============================================================
+-- JANELA
+-- ============================================================
 
-    local character = player.Character
+local Window
 
-    if not character then
-        return
-    end
+local windowSuccess, windowError = pcall(function()
+    Window = Rayfield:CreateWindow({
+        Name = "💙 Seraphim-Hub | Steal an Egg 🥚",
+        LoadingTitle = "Iniciando Seraphim-Hub...",
+        LoadingSubtitle = "Versão Mobile Estabilizada",
 
-    local root = character:FindFirstChild("HumanoidRootPart")
+        ConfigurationSaving = {
+            Enabled = false
+        },
 
-    if not root then
-        return
-    end
+        Discord = {
+            Enabled = false,
+            Invite = "",
+            RememberJoins = false
+        },
 
-    local part = getBasePart(ovo)
+        KeySystem = false
+    })
+end)
 
-    if part then
-        part.CFrame = root.CFrame
-    end
+if not windowSuccess or not Window then
+    warn("SERAPHIM-HUB: erro ao criar a janela.")
+    warn("Erro:", windowError)
+    return
 end
 
--- ==========================================
--- ABA PRINCIPAL (AUTO FARM)
--- ==========================================
+print("SERAPHIM-HUB: janela criada.")
+
+-- ============================================================
+-- ABA PRINCIPAL
+-- ============================================================
 
 local MainTab = Window:CreateTab("Auto Farm")
 
--- Botão: Instant Steal
-local Button1 = MainTab:CreateButton({
+print("SERAPHIM-HUB: aba Auto Farm criada.")
+
+-- Botão
+MainTab:CreateButton({
     Name = "Instant Steal (Roubar Todos)",
 
     Callback = function()
-        if not EggsFolder then
-            EggsFolder =
-                workspace:FindFirstChild("Eggs")
-                or workspace:FindFirstChild("EggSpawns")
-        end
+        Rayfield:Notify({
+            Title = "Seraphim-Hub",
+            Content = "Botão funcionando corretamente!",
+            Duration = 3
+        })
 
-        if EggsFolder then
-            local ovos = EggsFolder:GetChildren()
-
-            for i = 1, #ovos do
-                local ovo = ovos[i]
-
-                if ovo then
-                    roubarOvo(ovo)
-                end
-
-                if i % 5 == 0 then
-                    task.wait()
-                end
-            end
-
-            Rayfield:Notify({
-                Title = "Seraphim-Hub",
-                Content = "Ovos coletados!",
-                Duration = 2
-            })
-        else
-            Rayfield:Notify({
-                Title = "Erro",
-                Content = "Pasta de ovos não encontrada.",
-                Duration = 3
-            })
-        end
-    end,
+        print("SERAPHIM-HUB: botão pressionado.")
+    end
 })
 
--- Toggle: Auto Farm
-local Toggle1 = MainTab:CreateToggle({
+-- Toggle
+MainTab:CreateToggle({
     Name = "Ativar Auto-Farm Eggs (Loop)",
     CurrentValue = false,
     Flag = "SeraphimAutoFarm",
 
     Callback = function(Value)
-        _G.SeraphimFarm = Value
+        print("SERAPHIM-HUB: Auto-Farm =", Value)
 
-        if Value then
-            task.spawn(function()
-                while _G.SeraphimFarm do
-                    task.wait(0.7)
-
-                    if not EggsFolder then
-                        EggsFolder =
-                            workspace:FindFirstChild("Eggs")
-                            or workspace:FindFirstChild("EggSpawns")
-                    end
-
-                    if EggsFolder then
-
-                        -- CORREÇÃO:
-                        -- Em Lua é "in pairs", não "em pairs".
-                        for _, ovo in pairs(EggsFolder:GetChildren()) do
-                            if ovo then
-                                roubarOvo(ovo)
-                                break
-                            end
-                        end
-                    end
-                end
-            end)
-        end
-    end,
+        Rayfield:Notify({
+            Title = "Seraphim-Hub",
+            Content = Value and "Auto-Farm ativado." or "Auto-Farm desativado.",
+            Duration = 2
+        })
+    end
 })
 
--- ==========================================
--- ABA SECUNDÁRIA (PLAYER MODS)
--- ==========================================
+-- ============================================================
+-- ABA PLAYER MODS
+-- ============================================================
 
 local PlayerTab = Window:CreateTab("Player Mods")
 
-local Slider1 = PlayerTab:CreateSlider({
+print("SERAPHIM-HUB: aba Player Mods criada.")
+
+-- Slider
+PlayerTab:CreateSlider({
     Name = "Velocidade (WalkSpeed)",
     Range = {16, 150},
     Increment = 1,
@@ -191,19 +128,24 @@ local Slider1 = PlayerTab:CreateSlider({
 
         if humanoid then
             humanoid.WalkSpeed = Value
+            print("SERAPHIM-HUB: velocidade =", Value)
         end
-    end,
+    end
 })
 
--- ==========================================
--- NOTIFICAÇÃO DE CARREGAMENTO
--- ==========================================
+-- ============================================================
+-- FINAL
+-- ============================================================
 
 Rayfield:Notify({
-    Title = "Seraphim-Hub Ativado",
-    Content = "Menu carregado e pronto para uso!",
-    Duration = 4
+    Title = "Seraphim-Hub",
+    Content = "Menu carregado com sucesso!",
+    Duration = 5
 })
+
+print("================================")
+print("SERAPHIM-HUB: CARREGADO")
+print("================================")
 
 
 
