@@ -1,634 +1,287 @@
---==================================================
--- SERAPHIM HUB
--- Interface autossuficiente para Roblox Studio
--- Sem Fluent / sem GitHub / sem loadstring
---==================================================
+--// 🪽 SERAPHIM-HUB
+--// Painel compacto
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 
 local Player = Players.LocalPlayer
-local PlayerGui = Player:WaitForChild("PlayerGui")
 
 --==================================================
--- CONFIGURAÇÕES
+-- CONFIGURAÇÃO
 --==================================================
 
-local BLUE = Color3.fromRGB(0, 120, 255)
-local DARK = Color3.fromRGB(10, 12, 18)
-local SURFACE = Color3.fromRGB(20, 24, 34)
-local SURFACE2 = Color3.fromRGB(27, 32, 45)
-local WHITE = Color3.fromRGB(255, 255, 255)
-local MUTED = Color3.fromRGB(170, 180, 195)
-
-local AutoFarmEnabled = false
-local SpeedValue = 16
+local AutoRoubar = false
+local Velocidade = 16
+local PararRoubo = false
 
 --==================================================
--- GUI PRINCIPAL
+-- GUI
 --==================================================
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "SeraphimHub"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.Parent = PlayerGui
+ScreenGui.Parent = game:GetService("CoreGui")
+
+local Main = Instance.new("Frame")
+Main.Size = UDim2.fromOffset(420, 300)
+Main.Position = UDim2.new(0.5, -210, 0.5, -150)
+Main.BackgroundColor3 = Color3.fromRGB(15, 18, 25)
+Main.BorderSizePixel = 0
+Main.Parent = ScreenGui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 8)
+Corner.Parent = Main
+
+local Stroke = Instance.new("UIStroke")
+Stroke.Color = Color3.fromRGB(0, 120, 255)
+Stroke.Thickness = 1
+Stroke.Parent = Main
 
 --==================================================
--- FUNÇÕES DA INTERFACE
+-- TOPO
 --==================================================
 
-local function Corner(object, radius)
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, radius)
-    corner.Parent = object
-    return corner
-end
+local Top = Instance.new("Frame")
+Top.Size = UDim2.new(1, 0, 0, 42)
+Top.BackgroundColor3 = Color3.fromRGB(10, 13, 20)
+Top.BorderSizePixel = 0
+Top.Parent = Main
 
-local function Stroke(object, color, transparency)
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = color
-    stroke.Transparency = transparency or 0
-    stroke.Thickness = 1
-    stroke.Parent = object
-    return stroke
-end
+local TopCorner = Instance.new("UICorner")
+TopCorner.CornerRadius = UDim.new(0, 8)
+TopCorner.Parent = Top
 
-local function Label(parent, text, size, position, fontSize)
-    local label = Instance.new("TextLabel")
-
-    label.Size = size
-    label.Position = position
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.TextColor3 = WHITE
-    label.Font = Enum.Font.Gotham
-    label.TextSize = fontSize
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = parent
-
-    return label
-end
-
---==================================================
--- JANELA
---==================================================
-
-local Window = Instance.new("Frame")
-
-Window.Name = "Window"
-Window.Size = UDim2.fromOffset(580, 460)
-Window.Position = UDim2.fromScale(0.5, 0.5)
-Window.AnchorPoint = Vector2.new(0.5, 0.5)
-Window.BackgroundColor3 = DARK
-Window.Parent = ScreenGui
-
-Corner(Window, 14)
-Stroke(Window, BLUE, 0.25)
-
---==================================================
--- CABEÇALHO
---==================================================
-
-local Header = Instance.new("Frame")
-
-Header.Size = UDim2.new(1, 0, 0, 65)
-Header.BackgroundColor3 = SURFACE
-Header.BorderSizePixel = 0
-Header.Parent = Window
-
-Corner(Header, 14)
-
-local Title = Label(
-    Header,
-    "Seraphim-Hub",
-    UDim2.new(1, -30, 0, 30),
-    UDim2.fromOffset(18, 10),
-    21
-)
-
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -20, 1, 0)
+Title.Position = UDim2.fromOffset(10, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "🪽 SERAPHIM-HUB"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 17
 Title.Font = Enum.Font.GothamBold
-
-local SubTitle = Label(
-    Header,
-    "by Delta User",
-    UDim2.new(1, -30, 0, 18),
-    UDim2.fromOffset(19, 38),
-    11
-)
-
-SubTitle.TextColor3 = MUTED
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Top
 
 --==================================================
--- ÁREA DAS ABAS
+-- ABAS
 --==================================================
 
-local TabBar = Instance.new("Frame")
+local Tabs = Instance.new("Frame")
+Tabs.Size = UDim2.new(0, 105, 1, -42)
+Tabs.Position = UDim2.fromOffset(0, 42)
+Tabs.BackgroundColor3 = Color3.fromRGB(12, 15, 22)
+Tabs.BorderSizePixel = 0
+Tabs.Parent = Main
 
-TabBar.Size = UDim2.new(0, 150, 1, -65)
-TabBar.Position = UDim2.fromOffset(0, 65)
-TabBar.BackgroundColor3 = SURFACE
-TabBar.BorderSizePixel = 0
-TabBar.Parent = Window
+local function CreateTabButton(text, y)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(1, -12, 0, 38)
+    Button.Position = UDim2.fromOffset(6, y)
+    Button.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
+    Button.BorderSizePixel = 0
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(220, 225, 235)
+    Button.TextSize = 13
+    Button.Font = Enum.Font.GothamSemibold
+    Button.Parent = Tabs
+
+    local C = Instance.new("UICorner")
+    C.CornerRadius = UDim.new(0, 6)
+    C.Parent = Button
+
+    return Button
+end
+
+local MainTabButton = CreateTabButton("Automação", 10)
+local TeleportTabButton = CreateTabButton("Teleportes", 55)
 
 --==================================================
--- ÁREA DE CONTEÚDO
+-- CONTEÚDO
 --==================================================
 
 local Content = Instance.new("Frame")
+Content.Size = UDim2.new(1, -105, 1, -42)
+Content.Position = UDim2.fromOffset(105, 42)
+Content.BackgroundTransparency = 1
+Content.Parent = Main
 
-Content.Size = UDim2.new(1, -150, 1, -65)
-Content.Position = UDim2.fromOffset(150, 65)
-Content.BackgroundColor3 = DARK
-Content.BorderSizePixel = 0
-Content.Parent = Window
+local Automation = Instance.new("Frame")
+Automation.Size = UDim2.new(1, 0, 1, 0)
+Automation.BackgroundTransparency = 1
+Automation.Parent = Content
 
---==================================================
--- CRIAÇÃO DAS ABAS
---==================================================
-
-local MainTab = Instance.new("TextButton")
-
-MainTab.Size = UDim2.new(1, -20, 0, 45)
-MainTab.Position = UDim2.fromOffset(10, 15)
-MainTab.BackgroundColor3 = BLUE
-MainTab.Text = "⚙  Automação"
-MainTab.TextColor3 = WHITE
-MainTab.Font = Enum.Font.GothamBold
-MainTab.TextSize = 13
-MainTab.AutoButtonColor = false
-MainTab.Parent = TabBar
-
-Corner(MainTab, 9)
-
-local TeleportTab = Instance.new("TextButton")
-
-TeleportTab.Size = UDim2.new(1, -20, 0, 45)
-TeleportTab.Position = UDim2.fromOffset(10, 70)
-TeleportTab.BackgroundColor3 = SURFACE2
-TeleportTab.Text = "◆  Teleportes"
-TeleportTab.TextColor3 = MUTED
-TeleportTab.Font = Enum.Font.GothamBold
-TeleportTab.TextSize = 13
-TeleportTab.AutoButtonColor = false
-TeleportTab.Parent = TabBar
-
-Corner(TeleportTab, 9)
+local Teleports = Instance.new("Frame")
+Teleports.Size = UDim2.new(1, 0, 1, 0)
+Teleports.BackgroundTransparency = 1
+Teleports.Visible = false
+Teleports.Parent = Content
 
 --==================================================
--- PÁGINA AUTOMACÃO
+-- FUNÇÃO DE BOTÃO
 --==================================================
 
-local MainPage = Instance.new("Frame")
+local function CreateButton(parent, text, y)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(1, -24, 0, 38)
+    Button.Position = UDim2.fromOffset(12, y)
+    Button.BackgroundColor3 = Color3.fromRGB(25, 30, 42)
+    Button.BorderSizePixel = 0
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(240, 240, 245)
+    Button.TextSize = 13
+    Button.Font = Enum.Font.GothamSemibold
+    Button.Parent = parent
 
-MainPage.Size = UDim2.fromScale(1, 1)
-MainPage.BackgroundTransparency = 1
-MainPage.Parent = Content
+    local C = Instance.new("UICorner")
+    C.CornerRadius = UDim.new(0, 6)
+    C.Parent = Button
 
-Label(
-    MainPage,
-    "AUTOMAÇÃO",
-    UDim2.new(1, -40, 0, 25),
-    UDim2.fromOffset(20, 18),
-    17
-).Font = Enum.Font.GothamBold
-
-local Info = Label(
-    MainPage,
-    "Controles principais do Seraphim-Hub",
-    UDim2.new(1, -40, 0, 20),
-    UDim2.fromOffset(20, 45),
-    11
-)
-
-Info.TextColor3 = MUTED
-
---==================================================
--- TOGGLE AUTO FARM
---==================================================
-
-local AutoFarmButton = Instance.new("TextButton")
-
-AutoFarmButton.Size = UDim2.new(1, -40, 0, 55)
-AutoFarmButton.Position = UDim2.fromOffset(20, 80)
-AutoFarmButton.BackgroundColor3 = SURFACE
-AutoFarmButton.Text = ""
-AutoFarmButton.AutoButtonColor = false
-AutoFarmButton.Parent = MainPage
-
-Corner(AutoFarmButton, 10)
-Stroke(AutoFarmButton, Color3.fromRGB(55, 65, 80), 0.25)
-
-Label(
-    AutoFarmButton,
-    "Ativar Auto Farm",
-    UDim2.new(1, -100, 0, 23),
-    UDim2.fromOffset(15, 7),
-    14
-).Font = Enum.Font.GothamBold
-
-local AutoDescription = Label(
-    AutoFarmButton,
-    "Ativa ou desativa o sistema de automação",
-    UDim2.new(1, -100, 0, 18),
-    UDim2.fromOffset(15, 30),
-    10
-)
-
-AutoDescription.TextColor3 = MUTED
-
-local AutoState = Instance.new("TextLabel")
-
-AutoState.Size = UDim2.fromOffset(55, 27)
-AutoState.Position = UDim2.new(1, -70, 0.5, -13)
-AutoState.BackgroundColor3 = Color3.fromRGB(50, 60, 75)
-AutoState.Text = "OFF"
-AutoState.TextColor3 = MUTED
-AutoState.Font = Enum.Font.GothamBold
-AutoState.TextSize = 11
-AutoState.Parent = AutoFarmButton
-
-Corner(AutoState, 7)
-
-AutoFarmButton.MouseButton1Click:Connect(function()
-
-    AutoFarmEnabled = not AutoFarmEnabled
-
-    if AutoFarmEnabled then
-        AutoState.Text = "ON"
-        AutoState.BackgroundColor3 = BLUE
-        AutoState.TextColor3 = WHITE
-    else
-        AutoState.Text = "OFF"
-        AutoState.BackgroundColor3 = Color3.fromRGB(50, 60, 75)
-        AutoState.TextColor3 = MUTED
-    end
-
-end)
-
---==================================================
--- SLIDER DE VELOCIDADE
---==================================================
-
-Label(
-    MainPage,
-    "VELOCIDADE DO PERSONAGEM",
-    UDim2.new(1, -40, 0, 20),
-    UDim2.fromOffset(20, 155),
-    12
-).Font = Enum.Font.GothamBold
-
-local SpeedValueLabel = Label(
-    MainPage,
-    "16",
-    UDim2.fromOffset(50, 20),
-    UDim2.new(1, -70, 0, 153),
-    12
-)
-
-SpeedValueLabel.TextXAlignment = Enum.TextXAlignment.Right
-SpeedValueLabel.TextColor3 = BLUE
-
-local SliderBackground = Instance.new("Frame")
-
-SliderBackground.Size = UDim2.new(1, -40, 0, 8)
-SliderBackground.Position = UDim2.fromOffset(20, 190)
-SliderBackground.BackgroundColor3 = Color3.fromRGB(45, 50, 65)
-SliderBackground.BorderSizePixel = 0
-SliderBackground.Parent = MainPage
-
-Corner(SliderBackground, 5)
-
-local SliderFill = Instance.new("Frame")
-
-SliderFill.Size = UDim2.new(0, 0, 1, 0)
-SliderFill.BackgroundColor3 = BLUE
-SliderFill.BorderSizePixel = 0
-SliderFill.Parent = SliderBackground
-
-Corner(SliderFill, 5)
-
-local SliderButton = Instance.new("TextButton")
-
-SliderButton.Size = UDim2.fromOffset(18, 18)
-SliderButton.Position = UDim2.new(0, -9, 0.5, -9)
-SliderButton.BackgroundColor3 = WHITE
-SliderButton.Text = ""
-SliderButton.AutoButtonColor = false
-SliderButton.Parent = SliderBackground
-
-Corner(SliderButton, 50)
-
-local draggingSlider = false
-
-local function SetSpeedFromMouse(mouseX)
-
-    local relative =
-        math.clamp(
-            (mouseX - SliderBackground.AbsolutePosition.X)
-            / SliderBackground.AbsoluteSize.X,
-            0,
-            1
-        )
-
-    SpeedValue = math.floor(16 + (150 - 16) * relative)
-
-    SpeedValueLabel.Text = tostring(SpeedValue)
-
-    SliderFill.Size =
-        UDim2.new(relative, 0, 1, 0)
-
-    SliderButton.Position =
-        UDim2.new(relative, -9, 0.5, -9)
-
-    local character = Player.Character
-    local humanoid =
-        character and character:FindFirstChildOfClass("Humanoid")
-
-    if humanoid then
-        humanoid.WalkSpeed = SpeedValue
-    end
+    return Button
 end
 
-SliderButton.MouseButton1Down:Connect(function()
-    draggingSlider = true
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-
-    if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-
-        draggingSlider = false
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-
-    if not draggingSlider then
-        return
-    end
-
-    if input.UserInputType == Enum.UserInputType.MouseMovement
-        or input.UserInputType == Enum.UserInputType.Touch then
-
-        SetSpeedFromMouse(input.Position.X)
-    end
-end)
-
 --==================================================
--- LOOP DO AUTO FARM
+-- AUTO ROUBAR OVOS
 --==================================================
 
-task.spawn(function()
-
-    while ScreenGui.Parent do
-
-        task.wait(0.1)
-
-        if AutoFarmEnabled then
-
-            -- Coloque aqui a lógica específica
-            -- do seu sistema de automação.
-
-        end
-    end
-
-end)
-
---==================================================
--- PÁGINA TELEPORTES
---==================================================
-
-local TeleportPage = Instance.new("Frame")
-
-TeleportPage.Size = UDim2.fromScale(1, 1)
-TeleportPage.BackgroundTransparency = 1
-TeleportPage.Visible = false
-TeleportPage.Parent = Content
-
-Label(
-    TeleportPage,
-    "TELEPORTES",
-    UDim2.new(1, -40, 0, 25),
-    UDim2.fromOffset(20, 18),
-    17
-).Font = Enum.Font.GothamBold
-
-local TeleportInfo = Label(
-    TeleportPage,
-    "Escolha um local para teleportar",
-    UDim2.new(1, -40, 0, 20),
-    UDim2.fromOffset(20, 45),
-    11
+local AutoButton = CreateButton(
+    Automation,
+    "Auto Roubar Ovos: DESLIGADO",
+    12
 )
 
-TeleportInfo.TextColor3 = MUTED
+AutoButton.MouseButton1Click:Connect(function()
+    AutoRoubar = not AutoRoubar
+    PararRoubo = false
+
+    if AutoRoubar then
+        AutoButton.Text = "Auto Roubar Ovos: LIGADO"
+        AutoButton.BackgroundColor3 = Color3.fromRGB(0, 100, 210)
+    else
+        AutoButton.Text = "Auto Roubar Ovos: DESLIGADO"
+        AutoButton.BackgroundColor3 = Color3.fromRGB(25, 30, 42)
+    end
+end)
 
 --==================================================
--- BOTÃO DE TELEPORTE
+-- STOP
 --==================================================
 
-local TeleportButton = Instance.new("TextButton")
-
-TeleportButton.Size = UDim2.new(1, -40, 0, 65)
-TeleportButton.Position = UDim2.fromOffset(20, 85)
-TeleportButton.BackgroundColor3 = SURFACE
-TeleportButton.Text = ""
-TeleportButton.AutoButtonColor = false
-TeleportButton.Parent = TeleportPage
-
-Corner(TeleportButton, 10)
-Stroke(TeleportButton, Color3.fromRGB(55, 65, 80), 0.25)
-
-local TeleportTitle = Label(
-    TeleportButton,
-    "Teleportar para o Topo/Base",
-    UDim2.new(1, -30, 0, 25),
-    UDim2.fromOffset(15, 8),
-    14
+local StopButton = CreateButton(
+    Automation,
+    "⛔ STOP",
+    58
 )
 
-TeleportTitle.Font = Enum.Font.GothamBold
+StopButton.MouseButton1Click:Connect(function()
+    AutoRoubar = false
+    PararRoubo = true
 
-local TeleportDescription = Label(
-    TeleportButton,
-    "Ir para a posição configurada",
-    UDim2.new(1, -30, 0, 18),
-    UDim2.fromOffset(15, 35),
-    10
+    AutoButton.Text = "Auto Roubar Ovos: DESLIGADO"
+    AutoButton.BackgroundColor3 = Color3.fromRGB(25, 30, 42)
+end)
+
+--==================================================
+-- VELOCIDADE
+--==================================================
+
+local SpeedButton = CreateButton(
+    Automation,
+    "Velocidade: 16",
+    104
 )
 
-TeleportDescription.TextColor3 = MUTED
+SpeedButton.MouseButton1Click:Connect(function()
+    Velocidade += 10
 
-TeleportButton.MouseButton1Click:Connect(function()
+    if Velocidade > 150 then
+        Velocidade = 16
+    end
+
+    SpeedButton.Text = "Velocidade: " .. Velocidade
 
     local Character = Player.Character
-
-    if not Character then
-        return
-    end
-
-    local RootPart =
-        Character:FindFirstChild("HumanoidRootPart")
-
-    if not RootPart then
-        return
-    end
-
-    -- Mude estas coordenadas para o local desejado.
-    RootPart.CFrame =
-        CFrame.new(0, 100, 0)
-
-    ShowNotification(
-        "Seraphim-Hub",
-        "Teleportado com sucesso!"
-    )
-
-end)
-
---==================================================
--- NOTIFICAÇÃO
---==================================================
-
-function ShowNotification(title, message)
-
-    local Notification = Instance.new("Frame")
-
-    Notification.Size =
-        UDim2.fromOffset(300, 75)
-
-    Notification.Position =
-        UDim2.new(1, -320, 1, -95)
-
-    Notification.BackgroundColor3 =
-        SURFACE2
-
-    Notification.Parent = ScreenGui
-
-    Corner(Notification, 10)
-    Stroke(Notification, BLUE, 0.2)
-
-    local NotificationTitle = Label(
-        Notification,
-        title,
-        UDim2.new(1, -30, 0, 23),
-        UDim2.fromOffset(15, 9),
-        14
-    )
-
-    NotificationTitle.Font =
-        Enum.Font.GothamBold
-
-    local NotificationMessage = Label(
-        Notification,
-        message,
-        UDim2.new(1, -30, 0, 25),
-        UDim2.fromOffset(15, 35),
-        10
-    )
-
-    NotificationMessage.TextColor3 = MUTED
-
-    task.delay(3, function()
-
-        if Notification then
-            Notification:Destroy()
+    if Character then
+        local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+        if Humanoid then
+            Humanoid.WalkSpeed = Velocidade
         end
-
-    end)
-
-end
-
---==================================================
--- TROCA DE ABA
---==================================================
-
-MainTab.MouseButton1Click:Connect(function()
-
-    MainPage.Visible = true
-    TeleportPage.Visible = false
-
-    MainTab.BackgroundColor3 = BLUE
-    MainTab.TextColor3 = WHITE
-
-    TeleportTab.BackgroundColor3 = SURFACE2
-    TeleportTab.TextColor3 = MUTED
-
-end)
-
-TeleportTab.MouseButton1Click:Connect(function()
-
-    MainPage.Visible = false
-    TeleportPage.Visible = true
-
-    TeleportTab.BackgroundColor3 = BLUE
-    TeleportTab.TextColor3 = WHITE
-
-    MainTab.BackgroundColor3 = SURFACE2
-    MainTab.TextColor3 = MUTED
-
-end)
-
---==================================================
--- ARRASTAR A JANELA
---==================================================
-
-local draggingWindow = false
-local dragStart = nil
-local startPosition = nil
-
-Header.InputBegan:Connect(function(input)
-
-    if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-
-        draggingWindow = true
-        dragStart = input.Position
-        startPosition = Window.Position
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-
-    if not draggingWindow then
-        return
-    end
-
-    if input.UserInputType == Enum.UserInputType.MouseMovement
-        or input.UserInputType == Enum.UserInputType.Touch then
-
-        local delta =
-            input.Position - dragStart
-
-        Window.Position =
-            UDim2.new(
-                startPosition.X.Scale,
-                startPosition.X.Offset + delta.X,
-                startPosition.Y.Scale,
-                startPosition.Y.Offset + delta.Y
-            )
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-
-    if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-
-        draggingWindow = false
     end
 end)
 
 --==================================================
--- NOTIFICAÇÃO INICIAL
+-- TELEPORTES
 --==================================================
 
-ShowNotification(
-    "Seraphim-Hub",
-    "Interface carregada com sucesso!"
+local TeleportSpawn = CreateButton(
+    Teleports,
+    "Teleportar para Spawn",
+    12
 )
 
+TeleportSpawn.MouseButton1Click:Connect(function()
+    local Character = Player.Character
+    if Character and Character:FindFirstChild("HumanoidRootPart") then
+        Character.HumanoidRootPart.CFrame = CFrame.new(0, 5, 0)
+    end
+end)
 
+local TeleportUp = CreateButton(
+    Teleports,
+    "Teleportar para Cima",
+    58
+)
 
+TeleportUp.MouseButton1Click:Connect(function()
+    local Character = Player.Character
+    if Character and Character:FindFirstChild("HumanoidRootPart") then
+        Character.HumanoidRootPart.CFrame =
+            Character.HumanoidRootPart.CFrame + Vector3.new(0, 100, 0)
+    end
+end)
+
+--==================================================
+-- SISTEMA DE ABAS
+--==================================================
+
+MainTabButton.MouseButton1Click:Connect(function()
+    Automation.Visible = true
+    Teleports.Visible = false
+end)
+
+TeleportTabButton.MouseButton1Click:Connect(function()
+    Automation.Visible = false
+    Teleports.Visible = true
+end)
+
+--==================================================
+-- AUTO ROUBAR
+--==================================================
+
+local function EncontrarOvo()
+    local Character = Player.Character
+    if not Character then
+        return nil
+    end
+
+    local Root = Character:FindFirstChild("HumanoidRootPart")
+    if not Root then
+        return nil
+    end
+
+    local Alvo = nil
+    local MenorDistancia = math.huge
+
+    for _, Obj in ipairs(workspace:GetDescendants()) do
+        if Obj:IsA("Model") then
+
+            local Nome = string.lower(Obj.Name)
+
+            if string.find(Nome, "egg")
+                or string.find(Nome, "ovo") then
+
+                local Part = Obj.PrimaryPart
+                    or Obj:FindFirstChildWhichIsA("BasePart", true)
+
+                if Part then
