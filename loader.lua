@@ -8,7 +8,7 @@ local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
 local IMAGE_ID = "rbxassetid://97885929587100"
-local AUTO_ROUBO_SPEED = 1000
+local AUTO_ROUBO_SPEED = 750
 
 --==================================================
 -- ENCONTRAR BASE
@@ -58,7 +58,6 @@ end
 
 --==================================================
 -- 📶 PARA BOTS
--- VAI → ESPERA 0.5 → VOLTA
 --==================================================
 
 local function TeleportParaBots()
@@ -390,7 +389,6 @@ Top.InputBegan:Connect(function(Input)
 
                 Dragging = false
             end
-
         end)
     end
 end)
@@ -436,4 +434,4 @@ Stop.MouseButton1Click:Connect(function()
 end)
 
 print("🪽 Seraphim-Hub carregado")
-print("🏃 Auto Roubo Fly: 1000")
+print("🏃 Auto Roubo Fly: 750")
