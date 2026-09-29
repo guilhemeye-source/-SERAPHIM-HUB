@@ -1,5 +1,5 @@
 --// 🪽 Seraphim-Hub | PARA BOTS
---// Auto Roubo 500B + STOP
+--// Auto Roubo 10K + STOP
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -9,8 +9,8 @@ local PlayerGui = Player:WaitForChild("PlayerGui")
 
 local IMAGE_ID = "rbxassetid://97885929587100"
 
--- 500 bilhões
-local AUTO_ROUBO_SPEED = 500000000000
+-- 10 MIL DE VELOCIDADE
+local AUTO_ROUBO_SPEED = 10000
 
 --==================================================
 -- GUI
@@ -457,7 +457,6 @@ Top.InputBegan:Connect(function(Input)
     or Input.UserInputType == Enum.UserInputType.Touch then
 
         Dragging = true
-
         DragStart = Input.Position
         StartPos = Main.Position
 
@@ -497,5 +496,5 @@ UserInputService.InputChanged:Connect(function(Input)
 end)
 
 print("🪽 Seraphim-Hub carregado!")
-print("🏃 AUTO ROUBO: 500B")
+print("🏃 AUTO ROUBO: 10.000")
 print("⛔ STOP: ativado")
