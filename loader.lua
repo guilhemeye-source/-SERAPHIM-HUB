@@ -1,5 +1,4 @@
 --// 🪽 Seraphim-Hub | PARA BOTS
---// Clica para Teleportar
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -24,7 +23,7 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.Parent = PlayerGui
 
 --==================================================
--- PAINEL PRINCIPAL
+-- PAINEL
 --==================================================
 
 local Main = Instance.new("Frame")
@@ -49,7 +48,6 @@ Stroke.Parent = Main
 --==================================================
 
 local Top = Instance.new("Frame")
-Top.Name = "Top"
 Top.Size = UDim2.new(1, 0, 0, 38)
 Top.BackgroundColor3 = Color3.fromRGB(10, 13, 20)
 Top.BorderSizePixel = 0
@@ -64,7 +62,6 @@ TopCorner.Parent = Top
 --==================================================
 
 local Logo = Instance.new("ImageLabel")
-Logo.Name = "Logo"
 Logo.Size = UDim2.fromOffset(28, 28)
 Logo.Position = UDim2.fromOffset(7, 5)
 Logo.BackgroundTransparency = 1
@@ -88,11 +85,10 @@ Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Top
 
 --==================================================
--- BOTÃO FECHAR
+-- FECHAR
 --==================================================
 
 local CloseButton = Instance.new("TextButton")
-CloseButton.Name = "Close"
 CloseButton.Size = UDim2.fromOffset(27, 27)
 CloseButton.Position = UDim2.new(1, -32, 0, 5)
 CloseButton.BackgroundColor3 = Color3.fromRGB(35, 40, 52)
@@ -117,7 +113,7 @@ BostButton.Size = UDim2.new(1, -20, 0, 45)
 BostButton.Position = UDim2.fromOffset(10, 53)
 BostButton.BackgroundColor3 = Color3.fromRGB(0, 100, 210)
 BostButton.BorderSizePixel = 0
-BostButton.Text = "🏠  PARA BOTS"
+BostButton.Text = "📶  PARA BOTS"
 BostButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 BostButton.TextSize = 14
 BostButton.Font = Enum.Font.GothamBold
@@ -142,33 +138,7 @@ Status.Font = Enum.Font.Gotham
 Status.Parent = Main
 
 --==================================================
--- TELA PRETA
---==================================================
-
-local BlackScreen = Instance.new("Frame")
-BlackScreen.Name = "BlackScreen"
-BlackScreen.Size = UDim2.fromScale(1, 1)
-BlackScreen.Position = UDim2.fromScale(0, 0)
-BlackScreen.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-BlackScreen.BorderSizePixel = 0
-BlackScreen.Visible = false
-BlackScreen.ZIndex = 100
-BlackScreen.Parent = ScreenGui
-
-local BlackText = Instance.new("TextLabel")
-BlackText.Name = "BlackText"
-BlackText.Size = UDim2.fromScale(1, 0.15)
-BlackText.Position = UDim2.fromScale(0, 0.425)
-BlackText.BackgroundTransparency = 1
-BlackText.Text = "🪽 Seraphim-Hub"
-BlackText.TextColor3 = Color3.fromRGB(255, 255, 255)
-BlackText.TextSize = 20
-BlackText.Font = Enum.Font.GothamBold
-BlackText.ZIndex = 101
-BlackText.Parent = BlackScreen
-
---==================================================
--- FUNÇÃO: ENCONTRAR BASE
+-- ENCONTRAR BASE
 --==================================================
 
 local function FindBaseSpawn()
@@ -228,13 +198,13 @@ local function FindBaseSpawn()
 
     end
 
-    warn("Seraphim-Hub: Ponto da Base não encontrado!")
+    warn("Seraphim-Hub: Base não encontrada!")
 
     return nil
 end
 
 --==================================================
--- FUNÇÃO: TELEPORTAR PARA BASE
+-- TELEPORTE
 --==================================================
 
 local function TeleportToBase()
@@ -242,84 +212,41 @@ local function TeleportToBase()
     local Point = FindBaseSpawn()
 
     if not Point then
-
         Status.Text = "Base não encontrada!"
         Status.TextColor3 = Color3.fromRGB(255, 80, 80)
-
-        return false
+        return
     end
 
     local Character = Player.Character
 
     if not Character then
-
-        Status.Text = "Personagem não encontrado!"
-
-        return false
+        return
     end
 
     local Root = Character:FindFirstChild("HumanoidRootPart")
-    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
 
-    if not Root or not Humanoid then
-
-        Status.Text = "Personagem carregando..."
-
-        return false
+    if not Root then
+        return
     end
 
-    local NovaPosicao = Point.CFrame + Vector3.new(0, 4, 0)
+    -- Teleporte direto, sem tela preta
+    Root.CFrame = Point.CFrame + Vector3.new(0, 4, 0)
 
-    Root.CFrame = NovaPosicao
+    Status.Text = "Conectado!"
+    Status.TextColor3 = Color3.fromRGB(80, 220, 130)
 
-    task.wait(0.08)
-
-    if Root then
-        Root.CFrame = NovaPosicao
-    end
-
-    task.wait(0.15)
-
-    print("🪽 Seraphim-Hub: PARA BOTS — Teleportado!")
-
-    return true
 end
 
 --==================================================
--- CLIQUE PARA BOTS
+-- CLIQUE
 --==================================================
 
 BostButton.MouseButton1Click:Connect(function()
 
-    if BlackScreen.Visible then
-        return
-    end
-
+    Status.Text = "Conectando..."
     Status.TextColor3 = Color3.fromRGB(160, 170, 185)
-    Status.Text = "Teleportando..."
 
-    -- Mostra a tela preta
-    BlackScreen.Visible = true
-
-    -- Teleporta
-    local Success = TeleportToBase()
-
-    if Success then
-        BlackText.Text = "🪽 Seraphim-Hub"
-    else
-        BlackText.Text = "Base não encontrada"
-    end
-
-    -- Fica preta por 3 segundos
-    task.wait(3)
-
-    -- Volta para a tela normal
-    BlackScreen.Visible = false
-
-    if Success then
-        Status.Text = "Teleportado para a Base!"
-        Status.TextColor3 = Color3.fromRGB(80, 220, 130)
-    end
+    TeleportToBase()
 
 end)
 
@@ -366,7 +293,7 @@ OpenButton.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
--- ARRASTAR JANELA
+-- ARRASTAR
 --==================================================
 
 local Dragging = false
@@ -421,4 +348,4 @@ end)
 --==================================================
 
 print("🪽 Seraphim-Hub carregado!")
-print("Clique em PARA BOTS para teleportar.")
+print("📶 PARA BOTS disponível.")
