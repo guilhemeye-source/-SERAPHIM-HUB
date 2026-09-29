@@ -1,5 +1,4 @@
---// 🪽 Seraphim-Hub | PARA BOTS
---// Clica para Teleportar
+--// 🪽 Seraphim-Hub | PARA BOTS + AUTO ROUBO
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -11,6 +10,7 @@ local Player = Players.LocalPlayer
 --==================================================
 
 local IMAGE_ID = "rbxassetid://97885929587100"
+local AUTO_ROUBO_SPEED = 100
 
 --==================================================
 -- GUI
@@ -28,8 +28,8 @@ ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
 local Main = Instance.new("Frame")
 Main.Name = "Main"
-Main.Size = UDim2.fromOffset(260, 145)
-Main.Position = UDim2.new(0.5, -130, 0.5, -72)
+Main.Size = UDim2.fromOffset(260, 200)
+Main.Position = UDim2.new(0.5, -130, 0.5, -100)
 Main.BackgroundColor3 = Color3.fromRGB(15, 18, 25)
 Main.BorderSizePixel = 0
 Main.Parent = ScreenGui
@@ -86,7 +86,7 @@ Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Top
 
 --==================================================
--- BOTÃO FECHAR
+-- FECHAR
 --==================================================
 
 local CloseButton = Instance.new("TextButton")
@@ -106,33 +106,13 @@ CloseCorner.CornerRadius = UDim.new(0, 7)
 CloseCorner.Parent = CloseButton
 
 --==================================================
--- BOTÃO PARA BOTS
---==================================================
-
-local BostButton = Instance.new("TextButton")
-BostButton.Name = "ParaBots"
-BostButton.Size = UDim2.new(1, -20, 0, 45)
-BostButton.Position = UDim2.fromOffset(10, 55)
-BostButton.BackgroundColor3 = Color3.fromRGB(0, 100, 210)
-BostButton.BorderSizePixel = 0
-BostButton.Text = "📶 PARA BOTS"
-BostButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-BostButton.TextSize = 15
-BostButton.Font = Enum.Font.GothamBold
-BostButton.Parent = Main
-
-local BostCorner = Instance.new("UICorner")
-BostCorner.CornerRadius = UDim.new(0, 8)
-BostCorner.Parent = BostButton
-
---==================================================
 -- STATUS
 --==================================================
 
 local Status = Instance.new("TextLabel")
 Status.Name = "Status"
-Status.Size = UDim2.new(1, -20, 0, 25)
-Status.Position = UDim2.fromOffset(10, 103)
+Status.Size = UDim2.new(1, -20, 0, 20)
+Status.Position = UDim2.fromOffset(10, 174)
 Status.BackgroundTransparency = 1
 Status.Text = "Conectado"
 Status.TextColor3 = Color3.fromRGB(80, 220, 130)
@@ -207,29 +187,21 @@ local function FindBaseSpawn()
 end
 
 --==================================================
--- FUNÇÃO: TELEPORTAR PARA BASE
+-- TELEPORTE
 --==================================================
 
 local function TeleportToBase()
 
     local Point = FindBaseSpawn()
-
-    if not Point then
-        return
-    end
+    if not Point then return end
 
     local Character = Player.Character
-
-    if not Character then
-        return
-    end
+    if not Character then return end
 
     local Root = Character:FindFirstChild("HumanoidRootPart")
     local Humanoid = Character:FindFirstChild("Humanoid")
 
-    if not Root or not Humanoid then
-        return
-    end
+    if not Root or not Humanoid then return end
 
     Humanoid:SetStateEnabled(
         Enum.HumanoidStateType.Running,
@@ -269,11 +241,123 @@ local function TeleportToBase()
 end
 
 --==================================================
--- CLIQUE PARA BOTS
+-- AUTO ROUBO
 --==================================================
+
+local AutoRouboRunning = false
+
+local function AutoRoubo()
+
+    if AutoRouboRunning then
+        return
+    end
+
+    local Point = FindBaseSpawn()
+
+    if not Point then
+        return
+    end
+
+    local Character = Player.Character
+
+    if not Character then
+        return
+    end
+
+    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+    local Root = Character:FindFirstChild("HumanoidRootPart")
+
+    if not Humanoid or not Root then
+        return
+    end
+
+    AutoRouboRunning = true
+
+    local OldSpeed = Humanoid.WalkSpeed
+
+    -- Velocidade temporariamente alta
+    Humanoid.WalkSpeed = AUTO_ROUBO_SPEED
+
+    local Target = Point.Position + Vector3.new(0, 4, 0)
+
+    Humanoid:MoveTo(Target)
+
+    -- Continua mandando andar até chegar
+    while AutoRouboRunning and Character.Parent do
+
+        Root = Character:FindFirstChild("HumanoidRootPart")
+        Humanoid = Character:FindFirstChildOfClass("Humanoid")
+
+        if not Root or not Humanoid then
+            break
+        end
+
+        local Distance = (Root.Position - Target).Magnitude
+
+        if Distance <= 5 then
+            break
+        end
+
+        Humanoid:MoveTo(Target)
+
+        task.wait(0.05)
+    end
+
+    if Humanoid and Humanoid.Parent then
+        Humanoid.WalkSpeed = OldSpeed
+    end
+
+    AutoRouboRunning = false
+
+    print("Seraphim-Hub: AUTO ROUBO finalizado.")
+end
+
+--==================================================
+-- BOTÃO PARA BOTS
+--==================================================
+
+local BostButton = Instance.new("TextButton")
+BostButton.Name = "ParaBots"
+BostButton.Size = UDim2.new(1, -20, 0, 45)
+BostButton.Position = UDim2.fromOffset(10, 50)
+BostButton.BackgroundColor3 = Color3.fromRGB(0, 100, 210)
+BostButton.BorderSizePixel = 0
+BostButton.Text = "📶 PARA BOTS"
+BostButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+BostButton.TextSize = 15
+BostButton.Font = Enum.Font.GothamBold
+BostButton.Parent = Main
+
+local BostCorner = Instance.new("UICorner")
+BostCorner.CornerRadius = UDim.new(0, 8)
+BostCorner.Parent = BostButton
 
 BostButton.MouseButton1Click:Connect(function()
     TeleportToBase()
+end)
+
+--==================================================
+-- BOTÃO AUTO ROUBO
+--==================================================
+
+local AutoRouboButton = Instance.new("TextButton")
+AutoRouboButton.Name = "AutoRoubo"
+AutoRouboButton.Size = UDim2.new(1, -20, 0, 45)
+AutoRouboButton.Position = UDim2.fromOffset(10, 102)
+AutoRouboButton.BackgroundColor3 = Color3.fromRGB(0, 80, 170)
+AutoRouboButton.BorderSizePixel = 0
+AutoRouboButton.Text = "🏃 AUTO ROUBO"
+AutoRouboButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoRouboButton.TextSize = 15
+AutoRouboButton.Font = Enum.Font.GothamBold
+AutoRouboButton.Parent = Main
+
+local AutoRouboCorner = Instance.new("UICorner")
+AutoRouboCorner.CornerRadius = UDim.new(0, 8)
+AutoRouboCorner.Parent = AutoRouboButton
+
+AutoRouboButton.MouseButton1Click:Connect(function()
+    AutoRoubo()
 end)
 
 --==================================================
@@ -319,7 +403,7 @@ OpenButton.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
--- ARRASTAR JANELA
+-- ARRASTAR
 --==================================================
 
 local Dragging = false
@@ -375,3 +459,4 @@ end)
 
 print("🪽 Seraphim-Hub carregado!")
 print("📶 PARA BOTS disponível.")
+print("🏃 AUTO ROUBO disponível.")
