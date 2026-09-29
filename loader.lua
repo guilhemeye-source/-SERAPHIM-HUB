@@ -8,7 +8,7 @@ local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
 local IMAGE_ID = "rbxassetid://97885929587100"
-local AUTO_ROUBO_SPEED = 2000
+local AUTO_ROUBO_SPEED = 1000
 
 --==================================================
 -- ENCONTRAR BASE
@@ -273,7 +273,7 @@ Close.Font = Enum.Font.Gotham
 Close.Parent = Top
 
 --==================================================
--- CRIAR BOTÃO
+-- CRIAR BOTÕES
 --==================================================
 
 local function CreateButton(Text, Position, Background)
@@ -357,17 +357,13 @@ OpenCorner.Parent = OpenButton
 --==================================================
 
 Close.MouseButton1Click:Connect(function()
-
     Main.Visible = false
     OpenButton.Visible = true
-
 end)
 
 OpenButton.MouseButton1Click:Connect(function()
-
     Main.Visible = true
     OpenButton.Visible = false
-
 end)
 
 --==================================================
@@ -440,4 +436,4 @@ Stop.MouseButton1Click:Connect(function()
 end)
 
 print("🪽 Seraphim-Hub carregado")
-print("🏃 Auto Roubo Fly: 2000")
+print("🏃 Auto Roubo Fly: 1000")
