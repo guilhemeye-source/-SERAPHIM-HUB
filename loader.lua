@@ -1,52 +1,71 @@
-local Fluent = loadstring(game:HttpGet("https://github.com"))()
+-- ========================================================
+-- SERAPHIM HUB
+-- Biblioteca Fluent
+-- ========================================================
 
--- Configuração da Janela Principal (Tema Azul)
+local Fluent = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/source.lua"
+))()
+
+-- ========================================================
+-- JANELA PRINCIPAL
+-- ========================================================
+
 local Window = Fluent:CreateWindow({
     Title = "Seraphim-Hub",
     SubTitle = "by Delta User",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
-    Acrylic = false, 
-    Theme = "Dark", -- Base escura para destacar o azul
+    Acrylic = false,
+    Theme = "Dark",
     MinimizeKey = Enum.KeyCode.LeftControl
 })
 
--- Modifica as cores da interface nativamente para Azul
-Fluent.Options = {
-    AccentColor = Color3.fromRGB(0, 120, 255), -- Azul Seraphim
-    MainColor = Color3.fromRGB(15, 15, 20),
-    TextColor = Color3.fromRGB(255, 255, 255)
-}
+-- ========================================================
+-- ABAS
+-- ========================================================
 
--- Criando as Abas do Menu
 local Tabs = {
-    Main = Window:AddTab({ Title = "Automação", Icon = "rbxassetid://4483345998" }),
-    Teleport = Window:AddTab({ Title = "Teleportes", Icon = "rbxassetid://4483345998" })
+    Main = Window:AddTab({
+        Title = "Automação",
+        Icon = "rbxassetid://4483345998"
+    }),
+
+    Teleport = Window:AddTab({
+        Title = "Teleportes",
+        Icon = "rbxassetid://4483345998"
+    })
 }
 
 local Options = Fluent.Options
 
 -- ========================================================
--- ABA 1: AUTOMAÇÃO (Exemplo de Auto Farm / Auto Click)
+-- ABA: AUTOMAÇÃO
 -- ========================================================
 
-local AutoFarmToggle = Tabs.Main:AddToggle("AutoFarm", {Title = "Ativar Auto Farm", Default = false })
+local AutoFarmToggle = Tabs.Main:AddToggle("AutoFarm", {
+    Title = "Ativar Auto Farm",
+    Default = false
+})
 
--- Loop que roda em segundo plano enquanto o botão estiver ativo
+-- Loop do Auto Farm
 task.spawn(function()
-    while true do
-        task.wait(0.1) -- Evita travar o jogo
+    local VirtualUser = game:GetService("VirtualUser")
+
+    while task.wait(0.1) do
         if AutoFarmToggle.Value then
-            -- [COLOQUE AQUI A LÓGICA DE AUTO FARM DO JOGO QUE VOCÊ QUER]
-            -- Exemplo genérico de clicar/atacar automaticamente:
-            local virtualUser = game:GetService("VirtualUser")
-            virtualUser:CaptureController()
-            virtualUser:ClickButton1(Vector2.new(0, 0))
+            pcall(function()
+                VirtualUser:CaptureController()
+                VirtualUser:ClickButton1(Vector2.new(0, 0))
+            end)
         end
     end
 end)
 
--- Slider para ajustar a velocidade do jogador (WalkSpeed)
+-- ========================================================
+-- SLIDER DE VELOCIDADE
+-- ========================================================
+
 local SpeedSlider = Tabs.Main:AddSlider("Speed", {
     Title = "Velocidade do Personagem",
     Description = "Altera a velocidade de corrida",
@@ -55,36 +74,57 @@ local SpeedSlider = Tabs.Main:AddSlider("Speed", {
     Max = 150,
     Rounding = 0,
     Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+        pcall(function()
+            local Player = game:GetService("Players").LocalPlayer
+            local Character = Player.Character
+            local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+
+            if Humanoid then
+                Humanoid.WalkSpeed = Value
+            end
+        end)
     end
 })
 
-
 -- ========================================================
--- ABA 2: TELEPORTES
+-- ABA: TELEPORTES
 -- ========================================================
 
 Tabs.Teleport:AddButton({
     Title = "Teleportar para o Topo/Base",
     Description = "Leva seu personagem para coordenadas seguras",
+
     Callback = function()
-        local player = game.Players.LocalPlayer
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            -- Altere os números (0, 100, 0) para a posição X, Y, Z desejada do mapa
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(0, 100, 0)
-            Fluent:Notify({
-                Title = "Seraphim-Hub",
-                Content = "Teleportado com sucesso!",
-                Duration = 3
-            })
-        end
+        pcall(function()
+            local Player = game:GetService("Players").LocalPlayer
+            local Character = Player.Character
+            local RootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+
+            if RootPart then
+                RootPart.CFrame = CFrame.new(0, 100, 0)
+
+                Fluent:Notify({
+                    Title = "Seraphim-Hub",
+                    Content = "Teleportado com sucesso!",
+                    Duration = 3
+                })
+            end
+        end)
     end
 })
 
--- Notificação Inicial ao executar
+-- ========================================================
+-- SELECIONA A PRIMEIRA ABA
+-- ========================================================
+
 Window:SelectTab(1)
+
+-- ========================================================
+-- NOTIFICAÇÃO INICIAL
+-- ========================================================
+
 Fluent:Notify({
     Title = "Seraphim-Hub",
-    Content = "Script carregado com sucesso no Delta!",
+    Content = "Script carregado com sucesso!",
     Duration = 5
 })
