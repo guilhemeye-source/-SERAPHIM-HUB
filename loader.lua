@@ -6,10 +6,6 @@ local UserInputService = game:GetService("UserInputService")
 
 local Player = Players.LocalPlayer
 
---==================================================
--- CONFIGURAÇÃO
---==================================================
-
 local AutoRoubar = false
 local Velocidade = 16
 local PararRoubo = false
@@ -21,7 +17,7 @@ local PararRoubo = false
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "SeraphimHub"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
 local Main = Instance.new("Frame")
 Main.Size = UDim2.fromOffset(420, 300)
@@ -119,7 +115,7 @@ Teleports.Visible = false
 Teleports.Parent = Content
 
 --==================================================
--- FUNÇÃO DE BOTÃO
+-- BOTÃO
 --==================================================
 
 local function CreateButton(parent, text, y)
@@ -142,7 +138,7 @@ local function CreateButton(parent, text, y)
 end
 
 --==================================================
--- AUTO ROUBAR OVOS
+-- AUTO ROUBAR — CONTROLE
 --==================================================
 
 local AutoButton = CreateButton(
@@ -202,11 +198,10 @@ SpeedButton.MouseButton1Click:Connect(function()
     SpeedButton.Text = "Velocidade: " .. Velocidade
 
     local Character = Player.Character
-    if Character then
-        local Humanoid = Character:FindFirstChildOfClass("Humanoid")
-        if Humanoid then
-            Humanoid.WalkSpeed = Velocidade
-        end
+    local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+
+    if Humanoid then
+        Humanoid.WalkSpeed = Velocidade
     end
 end)
 
@@ -222,8 +217,10 @@ local TeleportSpawn = CreateButton(
 
 TeleportSpawn.MouseButton1Click:Connect(function()
     local Character = Player.Character
-    if Character and Character:FindFirstChild("HumanoidRootPart") then
-        Character.HumanoidRootPart.CFrame = CFrame.new(0, 5, 0)
+    local Root = Character and Character:FindFirstChild("HumanoidRootPart")
+
+    if Root then
+        Root.CFrame = CFrame.new(0, 5, 0)
     end
 end)
 
@@ -235,14 +232,15 @@ local TeleportUp = CreateButton(
 
 TeleportUp.MouseButton1Click:Connect(function()
     local Character = Player.Character
-    if Character and Character:FindFirstChild("HumanoidRootPart") then
-        Character.HumanoidRootPart.CFrame =
-            Character.HumanoidRootPart.CFrame + Vector3.new(0, 100, 0)
+    local Root = Character and Character:FindFirstChild("HumanoidRootPart")
+
+    if Root then
+        Root.CFrame = Root.CFrame + Vector3.new(0, 100, 0)
     end
 end)
 
 --==================================================
--- SISTEMA DE ABAS
+-- ABAS
 --==================================================
 
 MainTabButton.MouseButton1Click:Connect(function()
@@ -256,32 +254,46 @@ TeleportTabButton.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
--- AUTO ROUBAR
+-- ARRASTAR PAINEL
 --==================================================
 
-local function EncontrarOvo()
-    local Character = Player.Character
-    if not Character then
-        return nil
+local Dragging = false
+local DragStart
+local StartPosition
+
+Top.InputBegan:Connect(function(Input)
+    if Input.UserInputType == Enum.UserInputType.MouseButton1
+        or Input.UserInputType == Enum.UserInputType.Touch then
+
+        Dragging = true
+        DragStart = Input.Position
+        StartPosition = Main.Position
+
+        Input.Changed:Connect(function()
+            if Input.UserInputState == Enum.UserInputState.End then
+                Dragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(Input)
+    if not Dragging then
+        return
     end
 
-    local Root = Character:FindFirstChild("HumanoidRootPart")
-    if not Root then
-        return nil
+    if Input.UserInputType == Enum.UserInputType.MouseMovement
+        or Input.UserInputType == Enum.UserInputType.Touch then
+
+        local Delta = Input.Position - DragStart
+
+        Main.Position = UDim2.new(
+            StartPosition.X.Scale,
+            StartPosition.X.Offset + Delta.X,
+            StartPosition.Y.Scale,
+            StartPosition.Y.Offset + Delta.Y
+        )
     end
+end)
 
-    local Alvo = nil
-    local MenorDistancia = math.huge
-
-    for _, Obj in ipairs(workspace:GetDescendants()) do
-        if Obj:IsA("Model") then
-
-            local Nome = string.lower(Obj.Name)
-
-            if string.find(Nome, "egg")
-                or string.find(Nome, "ovo") then
-
-                local Part = Obj.PrimaryPart
-                    or Obj:FindFirstChildWhichIsA("BasePart", true)
-
-                if Part then
+print("🪽 SERAPHIM-HUB carregado!")
