@@ -10,7 +10,74 @@ local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
 local IMAGE_URL = "https://i.ibb.co/4wbF9PG0/211d12a0-a94f-11f1-b316-2d99c2fb1ccd.png"
-local AUTO_ROUBO_SPEED = 650
+local AUTO_ROUBO_SPEED = 100
+
+--==================================================
+-- 🛡️ PROTEÇÃO LOCAL
+--==================================================
+
+local ProtectionEnabled = true
+
+local function AtivarProtecao(Character)
+
+    local Humanoid = Character:WaitForChild("Humanoid")
+    local Root = Character:WaitForChild("HumanoidRootPart")
+
+    Humanoid.Health = Humanoid.MaxHealth
+
+    Humanoid:SetStateEnabled(
+        Enum.HumanoidStateType.Ragdoll,
+        false
+    )
+
+    Humanoid:SetStateEnabled(
+        Enum.HumanoidStateType.FallingDown,
+        false
+    )
+
+    Humanoid:SetStateEnabled(
+        Enum.HumanoidStateType.PlatformStanding,
+        false
+    )
+
+    Humanoid.HealthChanged:Connect(function()
+
+        if ProtectionEnabled
+        and Humanoid.Parent
+        and Humanoid.Health > 0 then
+
+            Humanoid.Health = Humanoid.MaxHealth
+        end
+
+    end)
+
+    task.spawn(function()
+
+        while ProtectionEnabled
+        and Character.Parent
+        and Humanoid.Parent do
+
+            Root.AssemblyAngularVelocity = Vector3.zero
+
+            task.wait(0.05)
+        end
+
+    end)
+end
+
+if Player.Character then
+    task.spawn(AtivarProtecao, Player.Character)
+end
+
+Player.CharacterAdded:Connect(function(Character)
+
+    task.wait(0.5)
+
+    if ProtectionEnabled then
+        task.spawn(AtivarProtecao, Character)
+    end
+
+end)
 
 --==================================================
 -- ENCONTRAR BASE
@@ -60,7 +127,7 @@ end
 
 --==================================================
 -- 📶 PARA BOTS
--- VAI → FICA 1 SEGUNDO → VOLTA
+-- 0.7 SEGUNDO
 --==================================================
 
 local function TeleportParaBots()
@@ -89,7 +156,7 @@ local function TeleportParaBots()
     Root.CFrame =
         Point.CFrame + Vector3.new(0, 4, 0)
 
-    task.wait(1)
+    task.wait(0.7)
 
     if Root and Root.Parent then
         Root.CFrame = PosicaoOriginal
@@ -97,7 +164,8 @@ local function TeleportParaBots()
 end
 
 --==================================================
--- 🏃 AUTO ROUBO / FLY
+-- 🏃 AUTO ROUBO
+-- VELOCIDADE 100
 --==================================================
 
 local AutoRouboRunning = false
@@ -190,8 +258,12 @@ local function StopAutoRoubo()
         Character:FindFirstChild("HumanoidRootPart")
 
     if Root then
-        Root.AssemblyLinearVelocity = Vector3.zero
-        Root.AssemblyAngularVelocity = Vector3.zero
+
+        Root.AssemblyLinearVelocity =
+            Vector3.zero
+
+        Root.AssemblyAngularVelocity =
+            Vector3.zero
     end
 end
 
@@ -199,102 +271,179 @@ end
 -- GUI
 --==================================================
 
-local ScreenGui = Instance.new("ScreenGui")
+local ScreenGui =
+    Instance.new("ScreenGui")
+
 ScreenGui.Name = "SeraphimHub"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ZIndexBehavior =
+    Enum.ZIndexBehavior.Sibling
+
 ScreenGui.Parent = PlayerGui
 
 --==================================================
 -- PAINEL
 --==================================================
 
-local Main = Instance.new("Frame")
-Main.Size = UDim2.fromOffset(250, 230)
-Main.Position = UDim2.new(0.5, -125, 0.5, -115)
-Main.BackgroundColor3 = Color3.fromRGB(24, 27, 34)
+local Main =
+    Instance.new("Frame")
+
+Main.Size =
+    UDim2.fromOffset(250, 230)
+
+Main.Position =
+    UDim2.new(0.5, -125, 0.5, -115)
+
+Main.BackgroundColor3 =
+    Color3.fromRGB(24, 27, 34)
+
 Main.BorderSizePixel = 0
 Main.Parent = ScreenGui
 
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 8)
+local MainCorner =
+    Instance.new("UICorner")
+
+MainCorner.CornerRadius =
+    UDim.new(0, 8)
+
 MainCorner.Parent = Main
 
 --==================================================
 -- TOPO
 --==================================================
 
-local Top = Instance.new("Frame")
-Top.Size = UDim2.new(1, 0, 0, 40)
-Top.BackgroundColor3 = Color3.fromRGB(30, 34, 43)
+local Top =
+    Instance.new("Frame")
+
+Top.Size =
+    UDim2.new(1, 0, 0, 40)
+
+Top.BackgroundColor3 =
+    Color3.fromRGB(30, 34, 43)
+
 Top.BorderSizePixel = 0
 Top.Parent = Main
 
-local TopCorner = Instance.new("UICorner")
-TopCorner.CornerRadius = UDim.new(0, 8)
+local TopCorner =
+    Instance.new("UICorner")
+
+TopCorner.CornerRadius =
+    UDim.new(0, 8)
+
 TopCorner.Parent = Top
 
 --==================================================
 -- LOGO
 --==================================================
 
-local Logo = Instance.new("ImageLabel")
-Logo.Size = UDim2.fromOffset(27, 27)
-Logo.Position = UDim2.fromOffset(8, 6)
+local Logo =
+    Instance.new("ImageLabel")
+
+Logo.Size =
+    UDim2.fromOffset(27, 27)
+
+Logo.Position =
+    UDim2.fromOffset(8, 6)
+
 Logo.BackgroundTransparency = 1
 Logo.Image = IMAGE_URL
+
 Logo.Parent = Top
 
 --==================================================
 -- TÍTULO
 --==================================================
 
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -75, 1, 0)
-Title.Position = UDim2.fromOffset(43, 0)
+local Title =
+    Instance.new("TextLabel")
+
+Title.Size =
+    UDim2.new(1, -75, 1, 0)
+
+Title.Position =
+    UDim2.fromOffset(43, 0)
+
 Title.BackgroundTransparency = 1
 Title.Text = "Seraphim-Hub"
-Title.TextColor3 = Color3.fromRGB(235, 235, 235)
+
+Title.TextColor3 =
+    Color3.fromRGB(235, 235, 235)
+
 Title.TextSize = 14
-Title.Font = Enum.Font.GothamMedium
-Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Font =
+    Enum.Font.GothamMedium
+
+Title.TextXAlignment =
+    Enum.TextXAlignment.Left
+
 Title.Parent = Top
 
 --==================================================
 -- FECHAR
 --==================================================
 
-local Close = Instance.new("TextButton")
-Close.Size = UDim2.fromOffset(30, 30)
-Close.Position = UDim2.new(1, -35, 0, 5)
+local Close =
+    Instance.new("TextButton")
+
+Close.Size =
+    UDim2.fromOffset(30, 30)
+
+Close.Position =
+    UDim2.new(1, -35, 0, 5)
+
 Close.BackgroundTransparency = 1
 Close.Text = "×"
-Close.TextColor3 = Color3.fromRGB(210, 210, 210)
+
+Close.TextColor3 =
+    Color3.fromRGB(210, 210, 210)
+
 Close.TextSize = 20
-Close.Font = Enum.Font.Gotham
+Close.Font =
+    Enum.Font.Gotham
+
 Close.Parent = Top
 
 --==================================================
--- CRIAR BOTÃO
+-- CRIAR BOTÕES
 --==================================================
 
-local function CreateButton(Text, Position, Background)
+local function CreateButton(
+    Text,
+    Position,
+    Background
+)
 
-    local Button = Instance.new("TextButton")
+    local Button =
+        Instance.new("TextButton")
 
-    Button.Size = UDim2.new(1, -20, 0, 40)
+    Button.Size =
+        UDim2.new(1, -20, 0, 40)
+
     Button.Position = Position
-    Button.BackgroundColor3 = Background
+
+    Button.BackgroundColor3 =
+        Background
+
     Button.BorderSizePixel = 0
+
     Button.Text = Text
-    Button.TextColor3 = Color3.fromRGB(245, 245, 245)
+
+    Button.TextColor3 =
+        Color3.fromRGB(245, 245, 245)
+
     Button.TextSize = 13
-    Button.Font = Enum.Font.GothamMedium
+    Button.Font =
+        Enum.Font.GothamMedium
+
     Button.AutoButtonColor = true
     Button.Parent = Main
 
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 6)
+    local Corner =
+        Instance.new("UICorner")
+
+    Corner.CornerRadius =
+        UDim.new(0, 6)
+
     Corner.Parent = Button
 
     return Button
@@ -304,54 +453,86 @@ end
 -- BOTÕES
 --==================================================
 
-local ParaBots = CreateButton(
-    "📶 PARA BOTS",
-    UDim2.fromOffset(10, 50),
-    Color3.fromRGB(45, 105, 180)
-)
+local ParaBots =
+    CreateButton(
+        "📶 PARA BOTS",
+        UDim2.fromOffset(10, 50),
+        Color3.fromRGB(45, 105, 180)
+    )
 
-local Auto = CreateButton(
-    "🏃 AUTO ROUBO",
-    UDim2.fromOffset(10, 96),
-    Color3.fromRGB(45, 135, 90)
-)
+local Auto =
+    CreateButton(
+        "🏃 AUTO ROUBO",
+        UDim2.fromOffset(10, 96),
+        Color3.fromRGB(45, 135, 90)
+    )
 
-local Stop = CreateButton(
-    "⛔ STOP",
-    UDim2.fromOffset(10, 142),
-    Color3.fromRGB(150, 55, 60)
-)
+local Stop =
+    CreateButton(
+        "⛔ STOP",
+        UDim2.fromOffset(10, 142),
+        Color3.fromRGB(150, 55, 60)
+    )
 
 --==================================================
 -- STATUS
 --==================================================
 
-local Status = Instance.new("TextLabel")
-Status.Size = UDim2.new(1, -20, 0, 25)
-Status.Position = UDim2.fromOffset(10, 190)
+local Status =
+    Instance.new("TextLabel")
+
+Status.Size =
+    UDim2.new(1, -20, 0, 25)
+
+Status.Position =
+    UDim2.fromOffset(10, 190)
+
 Status.BackgroundTransparency = 1
-Status.Text = "●  Conectado"
-Status.TextColor3 = Color3.fromRGB(75, 200, 115)
+
+Status.Text =
+    "● Proteção local: Ativa"
+
+Status.TextColor3 =
+    Color3.fromRGB(75, 200, 115)
+
 Status.TextSize = 12
-Status.Font = Enum.Font.Gotham
-Status.TextXAlignment = Enum.TextXAlignment.Left
+Status.Font =
+    Enum.Font.Gotham
+
+Status.TextXAlignment =
+    Enum.TextXAlignment.Left
+
 Status.Parent = Main
 
 --==================================================
--- BOLINHA FLUTUANTE
+-- BOLINHA
 --==================================================
 
-local OpenButton = Instance.new("ImageButton")
-OpenButton.Size = UDim2.fromOffset(55, 55)
-OpenButton.Position = UDim2.fromOffset(20, 200)
-OpenButton.BackgroundColor3 = Color3.fromRGB(24, 27, 34)
+local OpenButton =
+    Instance.new("ImageButton")
+
+OpenButton.Size =
+    UDim2.fromOffset(55, 55)
+
+OpenButton.Position =
+    UDim2.fromOffset(20, 200)
+
+OpenButton.BackgroundColor3 =
+    Color3.fromRGB(24, 27, 34)
+
 OpenButton.BorderSizePixel = 0
+
 OpenButton.Image = IMAGE_URL
 OpenButton.Visible = false
+
 OpenButton.Parent = ScreenGui
 
-local OpenCorner = Instance.new("UICorner")
-OpenCorner.CornerRadius = UDim.new(1, 0)
+local OpenCorner =
+    Instance.new("UICorner")
+
+OpenCorner.CornerRadius =
+    UDim.new(1, 0)
+
 OpenCorner.Parent = OpenButton
 
 --==================================================
@@ -417,13 +598,14 @@ UserInputService.InputChanged:Connect(function(Input)
         local Delta =
             Input.Position - DragStart
 
-        Main.Position = UDim2.new(
-            StartPosition.X.Scale,
-            StartPosition.X.Offset + Delta.X,
+        Main.Position =
+            UDim2.new(
+                StartPosition.X.Scale,
+                StartPosition.X.Offset + Delta.X,
 
-            StartPosition.Y.Scale,
-            StartPosition.Y.Offset + Delta.Y
-        )
+                StartPosition.Y.Scale,
+                StartPosition.Y.Offset + Delta.Y
+            )
     end
 end)
 
@@ -432,17 +614,28 @@ end)
 --==================================================
 
 ParaBots.MouseButton1Click:Connect(function()
+
     task.spawn(TeleportParaBots)
+
 end)
 
 Auto.MouseButton1Click:Connect(function()
+
     task.spawn(AutoRoubo)
+
 end)
 
 Stop.MouseButton1Click:Connect(function()
+
     StopAutoRoubo()
+
 end)
 
+--==================================================
+-- FINAL
+--==================================================
+
 print("🪽 Seraphim-Hub carregado")
-print("📶 Para Bots: 1 segundo")
-print("🏃 Auto Roubo Fly: 650")
+print("🛡️ Proteção local: ATIVA")
+print("📶 Para Bots: 0.7 segundo")
+print("🏃 Auto Roubo: 100")
