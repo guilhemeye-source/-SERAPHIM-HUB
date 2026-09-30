@@ -4,13 +4,140 @@
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 
 local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
-local IMAGE_URL = "https://i.ibb.co/4wbF9PG0/211d12a0-a94f-11f1-b316-2d99c2fb1ccd.png"
-local AUTO_ROUBO_SPEED = 100
+local IMAGE_URL =
+    "https://i.ibb.co/4wbF9PG0/211d12a0-a94f-11f1-b316-2d99c2fb1ccd.png"
+
+--==================================================
+-- 🐾 LISTA DE PETS
+--==================================================
+
+local PetRegions = {
+
+    ["🌲 Floresta"] = {
+        "Chicken",
+        "Dog",
+        "Bird",
+        "Owl",
+        "Raccoon",
+        "Fox",
+        "Bear",
+        "Brr Brr Patapim"
+    },
+
+    ["🌊 Lago"] = {
+        "Frog",
+        "Duckling",
+        "Catfish",
+        "Turtle",
+        "Trulimero Trulicina",
+        "Swan",
+        "Axolotl",
+        "Leviathan"
+    },
+
+    ["🏜️ Deserto"] = {
+        "Jerboa",
+        "Fennec",
+        "Camel",
+        "Tobi Tobi Tob Tob",
+        "Snake",
+        "Scorpion",
+        "Sand Spider",
+        "Royal Sphinx"
+    },
+
+    ["🐒 Selva"] = {
+        "Chimpanzee",
+        "Monkey",
+        "Sloth",
+        "Parrot",
+        "Jaguar",
+        "Crocodile",
+        "Tiger",
+        "King Snake"
+    },
+
+    ["❄️ Neve"] = {
+        "Penguin",
+        "Arctic Fox",
+        "Polar Bear",
+        "Seal",
+        "King Mammoth",
+        "Yeti",
+        "Ice Dragon"
+    },
+
+    ["🌋 Vulcão"] = {
+        "Fire Ant",
+        "Magma Golem",
+        "Lava Dragon",
+        "Cerberus",
+        "Phoenix"
+    },
+
+    ["🌊 Oceano Profundo"] = {
+        "Shark",
+        "Octopus",
+        "Whale Shark",
+        "Kraken",
+        "Beluga Whale",
+        "Abyss Overlord"
+    },
+
+    ["🦖 Pré-histórico"] = {
+        "Raptor",
+        "Triceratops",
+        "Mosasaurus",
+        "T-Rex",
+        "Skeletal Sabertooth"
+    },
+
+    ["🌌 Cósmico"] = {
+        "Alien",
+        "Cosmic Royal Sphinx",
+        "Cosmic Dragon",
+        "Cosmic Skeleton King",
+        "Unicorn"
+    },
+
+    ["🌸 Cerejeiras"] = {
+        "Stag",
+        "Oni Tiger",
+        "Kitsune"
+    },
+
+    ["🗿 Templo Titã"] = {
+        "Titan Golem",
+        "Night Flame",
+        "Nightflame",
+        "Gorilla King"
+    },
+
+    ["😇 Anjos e Demônios"] = {
+        "Light Dove",
+        "Winged Lamb",
+        "Sacred Moth",
+        "Holy Peacock",
+        "Pure Jellyfish",
+        "Centaur",
+        "Pegasus",
+        "ArchAngel",
+
+        "Flame Sprite",
+        "Toro",
+        "Imp",
+        "Demon Hound",
+        "Gargoyle",
+        "RazorFang",
+        "Skeleton Horse",
+        "World Burner",
+        "World Eater"
+    }
+}
 
 --==================================================
 -- 🛡️ PROTEÇÃO LOCAL
@@ -20,8 +147,11 @@ local ProtectionEnabled = true
 
 local function AtivarProtecao(Character)
 
-    local Humanoid = Character:WaitForChild("Humanoid")
-    local Root = Character:WaitForChild("HumanoidRootPart")
+    local Humanoid =
+        Character:WaitForChild("Humanoid")
+
+    local Root =
+        Character:WaitForChild("HumanoidRootPart")
 
     Humanoid.Health = Humanoid.MaxHealth
 
@@ -57,16 +187,19 @@ local function AtivarProtecao(Character)
         and Character.Parent
         and Humanoid.Parent do
 
-            Root.AssemblyAngularVelocity = Vector3.zero
+            Root.AssemblyAngularVelocity =
+                Vector3.zero
 
             task.wait(0.05)
         end
-
     end)
 end
 
 if Player.Character then
-    task.spawn(AtivarProtecao, Player.Character)
+    task.spawn(
+        AtivarProtecao,
+        Player.Character
+    )
 end
 
 Player.CharacterAdded:Connect(function(Character)
@@ -74,9 +207,11 @@ Player.CharacterAdded:Connect(function(Character)
     task.wait(0.5)
 
     if ProtectionEnabled then
-        task.spawn(AtivarProtecao, Character)
+        task.spawn(
+            AtivarProtecao,
+            Character
+        )
     end
-
 end)
 
 --==================================================
@@ -85,7 +220,8 @@ end)
 
 local function FindBaseSpawn()
 
-    local Base = workspace:FindFirstChild("Base", true)
+    local Base =
+        workspace:FindFirstChild("Base", true)
 
     if Base then
 
@@ -93,10 +229,11 @@ local function FindBaseSpawn()
             return Base
         end
 
-        local Spawn = Base:FindFirstChildWhichIsA(
-            "SpawnLocation",
-            true
-        )
+        local Spawn =
+            Base:FindFirstChildWhichIsA(
+                "SpawnLocation",
+                true
+            )
 
         if Spawn then
             return Spawn
@@ -107,11 +244,14 @@ local function FindBaseSpawn()
         end
     end
 
-    for _, Obj in ipairs(workspace:GetDescendants()) do
+    for _, Obj in ipairs(
+        workspace:GetDescendants()
+    ) do
 
         if Obj:IsA("SpawnLocation") then
 
-            local Name = string.lower(Obj.Name)
+            local Name =
+                string.lower(Obj.Name)
 
             if Name:find("base")
             or Name:find("spawn")
@@ -127,144 +267,198 @@ end
 
 --==================================================
 -- 📶 PARA BOTS
--- 0.7 SEGUNDO
 --==================================================
 
 local function TeleportParaBots()
 
-    local Point = FindBaseSpawn()
+    local Point =
+        FindBaseSpawn()
 
     if not Point then
         return
     end
 
-    local Character = Player.Character
+    local Character =
+        Player.Character
 
     if not Character then
         return
     end
 
     local Root =
-        Character:FindFirstChild("HumanoidRootPart")
+        Character:FindFirstChild(
+            "HumanoidRootPart"
+        )
 
     if not Root then
         return
     end
 
-    local PosicaoOriginal = Root.CFrame
+    local PosicaoOriginal =
+        Root.CFrame
 
     Root.CFrame =
-        Point.CFrame + Vector3.new(0, 4, 0)
+        Point.CFrame +
+        Vector3.new(0, 4, 0)
 
-    task.wait(0.7)
+    task.wait(1.5)
 
     if Root and Root.Parent then
-        Root.CFrame = PosicaoOriginal
-    end
-end
-
---==================================================
--- 🏃 AUTO ROUBO
--- VELOCIDADE 100
---==================================================
-
-local AutoRouboRunning = false
-
-local function AutoRoubo()
-
-    if AutoRouboRunning then
-        return
-    end
-
-    AutoRouboRunning = true
-
-    local Point = FindBaseSpawn()
-
-    if not Point then
-        AutoRouboRunning = false
-        return
-    end
-
-    local Character = Player.Character
-
-    if not Character then
-        AutoRouboRunning = false
-        return
-    end
-
-    local Root =
-        Character:FindFirstChild("HumanoidRootPart")
-
-    local Humanoid =
-        Character:FindFirstChild("Humanoid")
-
-    if not Root or not Humanoid then
-        AutoRouboRunning = false
-        return
-    end
-
-    local Target =
-        Point.Position + Vector3.new(0, 5, 0)
-
-    while AutoRouboRunning
-    and Character.Parent
-    and Root.Parent
-    and Humanoid.Health > 0 do
-
-        local Distance =
-            (Target - Root.Position).Magnitude
-
-        if Distance <= 5 then
-            break
-        end
-
-        local Direction =
-            (Target - Root.Position).Unit
-
-        local DeltaTime =
-            RunService.Heartbeat:Wait()
-
-        local Step =
-            AUTO_ROUBO_SPEED * DeltaTime
-
-        local NewPosition =
-            Root.Position + Direction * Step
-
         Root.CFrame =
-            CFrame.lookAt(
-                NewPosition,
-                Target
-            )
+            PosicaoOriginal
     end
-
-    AutoRouboRunning = false
 end
 
 --==================================================
--- ⛔ STOP
+-- 🐾 SISTEMA DE PETS
 --==================================================
 
-local function StopAutoRoubo()
+local PetsEnabled = false
 
-    AutoRouboRunning = false
+local PetNames = {}
 
-    local Character = Player.Character
+for _, Pets in pairs(PetRegions) do
 
-    if not Character then
-        return
+    for _, PetName in ipairs(Pets) do
+
+        PetNames[string.lower(PetName)] =
+            PetName
+
+    end
+end
+
+--==================================================
+-- 🔎 DESCOBRIR VALOR
+--==================================================
+
+local function GetPetValue(Pet)
+
+    -- Attributes
+    local Attributes =
+        Pet:GetAttributes()
+
+    local PossibleNames = {
+        "Value",
+        "value",
+        "Price",
+        "price",
+        "Worth",
+        "worth",
+        "Cash",
+        "cash",
+        "Money",
+        "money",
+        "Income",
+        "income",
+        "Earnings",
+        "earnings",
+        "Generation",
+        "generation",
+        "PerSecond",
+        "perSecond"
+    }
+
+    for _, Name in ipairs(
+        PossibleNames
+    ) do
+
+        local Value =
+            Attributes[Name]
+
+        if Value ~= nil then
+            return tostring(Value)
+        end
     end
 
-    local Root =
-        Character:FindFirstChild("HumanoidRootPart")
+    -- Values dentro do pet
+    for _, Obj in ipairs(
+        Pet:GetDescendants()
+    ) do
 
-    if Root then
+        if Obj:IsA("NumberValue")
+        or Obj:IsA("IntValue") then
 
-        Root.AssemblyLinearVelocity =
-            Vector3.zero
+            local Name =
+                string.lower(Obj.Name)
 
-        Root.AssemblyAngularVelocity =
-            Vector3.zero
+            if Name:find("value")
+            or Name:find("price")
+            or Name:find("worth")
+            or Name:find("cash")
+            or Name:find("money")
+            or Name:find("income")
+            or Name:find("generation")
+            or Name:find("second") then
+
+                return tostring(
+                    Obj.Value
+                )
+            end
+        end
     end
+
+    -- Textos
+    for _, Obj in ipairs(
+        Pet:GetDescendants()
+    ) do
+
+        if Obj:IsA("TextLabel")
+        or Obj:IsA("TextButton")
+        or Obj:IsA("TextBox") then
+
+            local Text =
+                Obj.Text
+
+            if Text ~= "" then
+
+                if Text:find("%$")
+                or Text:lower():find("cash")
+                or Text:lower():find("value")
+                or Text:lower():find("sec") then
+
+                    return Text
+                end
+            end
+        end
+    end
+
+    return "Valor não identificado"
+end
+
+--==================================================
+-- 🔎 ENCONTRAR PETS NO MAPA
+--==================================================
+
+local function EncontrarPets()
+
+    local Encontrados = {}
+
+    for _, Obj in ipairs(
+        workspace:GetDescendants()
+    ) do
+
+        local NomeOriginal =
+            Obj.Name
+
+        local NomeLower =
+            string.lower(NomeOriginal)
+
+        local NomeConhecido =
+            PetNames[NomeLower]
+
+        if NomeConhecido then
+
+            if not Encontrados[Obj] then
+
+                Encontrados[Obj] = {
+                    Name = NomeConhecido,
+                    Value = GetPetValue(Obj)
+                }
+            end
+        end
+    end
+
+    return Encontrados
 end
 
 --==================================================
@@ -274,12 +468,17 @@ end
 local ScreenGui =
     Instance.new("ScreenGui")
 
-ScreenGui.Name = "SeraphimHub"
-ScreenGui.ResetOnSpawn = false
+ScreenGui.Name =
+    "SeraphimHub"
+
+ScreenGui.ResetOnSpawn =
+    false
+
 ScreenGui.ZIndexBehavior =
     Enum.ZIndexBehavior.Sibling
 
-ScreenGui.Parent = PlayerGui
+ScreenGui.Parent =
+    PlayerGui
 
 --==================================================
 -- PAINEL
@@ -289,10 +488,15 @@ local Main =
     Instance.new("Frame")
 
 Main.Size =
-    UDim2.fromOffset(250, 230)
+    UDim2.fromOffset(270, 300)
 
 Main.Position =
-    UDim2.new(0.5, -125, 0.5, -115)
+    UDim2.new(
+        0.5,
+        -135,
+        0.5,
+        -150
+    )
 
 Main.BackgroundColor3 =
     Color3.fromRGB(24, 27, 34)
@@ -306,7 +510,8 @@ local MainCorner =
 MainCorner.CornerRadius =
     UDim.new(0, 8)
 
-MainCorner.Parent = Main
+MainCorner.Parent =
+    Main
 
 --==================================================
 -- TOPO
@@ -330,7 +535,8 @@ local TopCorner =
 TopCorner.CornerRadius =
     UDim.new(0, 8)
 
-TopCorner.Parent = Top
+TopCorner.Parent =
+    Top
 
 --==================================================
 -- LOGO
@@ -346,9 +552,12 @@ Logo.Position =
     UDim2.fromOffset(8, 6)
 
 Logo.BackgroundTransparency = 1
-Logo.Image = IMAGE_URL
 
-Logo.Parent = Top
+Logo.Image =
+    IMAGE_URL
+
+Logo.Parent =
+    Top
 
 --==================================================
 -- TÍTULO
@@ -358,25 +567,38 @@ local Title =
     Instance.new("TextLabel")
 
 Title.Size =
-    UDim2.new(1, -75, 1, 0)
+    UDim2.new(
+        1,
+        -75,
+        1,
+        0
+    )
 
 Title.Position =
     UDim2.fromOffset(43, 0)
 
 Title.BackgroundTransparency = 1
-Title.Text = "Seraphim-Hub"
+
+Title.Text =
+    "Seraphim-Hub"
 
 Title.TextColor3 =
-    Color3.fromRGB(235, 235, 235)
+    Color3.fromRGB(
+        235,
+        235,
+        235
+    )
 
 Title.TextSize = 14
+
 Title.Font =
     Enum.Font.GothamMedium
 
 Title.TextXAlignment =
     Enum.TextXAlignment.Left
 
-Title.Parent = Top
+Title.Parent =
+    Top
 
 --==================================================
 -- FECHAR
@@ -389,22 +611,34 @@ Close.Size =
     UDim2.fromOffset(30, 30)
 
 Close.Position =
-    UDim2.new(1, -35, 0, 5)
+    UDim2.new(
+        1,
+        -35,
+        0,
+        5
+    )
 
 Close.BackgroundTransparency = 1
+
 Close.Text = "×"
 
 Close.TextColor3 =
-    Color3.fromRGB(210, 210, 210)
+    Color3.fromRGB(
+        210,
+        210,
+        210
+    )
 
 Close.TextSize = 20
+
 Close.Font =
     Enum.Font.Gotham
 
-Close.Parent = Top
+Close.Parent =
+    Top
 
 --==================================================
--- CRIAR BOTÕES
+-- BOTÃO PADRÃO
 --==================================================
 
 local function CreateButton(
@@ -417,26 +651,40 @@ local function CreateButton(
         Instance.new("TextButton")
 
     Button.Size =
-        UDim2.new(1, -20, 0, 40)
+        UDim2.new(
+            1,
+            -20,
+            0,
+            40
+        )
 
-    Button.Position = Position
+    Button.Position =
+        Position
 
     Button.BackgroundColor3 =
         Background
 
     Button.BorderSizePixel = 0
 
-    Button.Text = Text
+    Button.Text =
+        Text
 
     Button.TextColor3 =
-        Color3.fromRGB(245, 245, 245)
+        Color3.fromRGB(
+            245,
+            245,
+            245
+        )
 
     Button.TextSize = 13
+
     Button.Font =
         Enum.Font.GothamMedium
 
     Button.AutoButtonColor = true
-    Button.Parent = Main
+
+    Button.Parent =
+        Main
 
     local Corner =
         Instance.new("UICorner")
@@ -444,34 +692,36 @@ local function CreateButton(
     Corner.CornerRadius =
         UDim.new(0, 6)
 
-    Corner.Parent = Button
+    Corner.Parent =
+        Button
 
     return Button
 end
 
 --==================================================
--- BOTÕES
+-- BOTÕES PRINCIPAIS
 --==================================================
 
 local ParaBots =
     CreateButton(
         "📶 PARA BOTS",
         UDim2.fromOffset(10, 50),
-        Color3.fromRGB(45, 105, 180)
+        Color3.fromRGB(
+            45,
+            105,
+            180
+        )
     )
 
-local Auto =
+local PetsButton =
     CreateButton(
-        "🏃 AUTO ROUBO",
+        "🐾 PETS: OFF",
         UDim2.fromOffset(10, 96),
-        Color3.fromRGB(45, 135, 90)
-    )
-
-local Stop =
-    CreateButton(
-        "⛔ STOP",
-        UDim2.fromOffset(10, 142),
-        Color3.fromRGB(150, 55, 60)
+        Color3.fromRGB(
+            65,
+            85,
+            105
+        )
     )
 
 --==================================================
@@ -482,27 +732,206 @@ local Status =
     Instance.new("TextLabel")
 
 Status.Size =
-    UDim2.new(1, -20, 0, 25)
+    UDim2.new(
+        1,
+        -20,
+        0,
+        25
+    )
 
 Status.Position =
-    UDim2.fromOffset(10, 190)
+    UDim2.fromOffset(
+        10,
+        142
+    )
 
 Status.BackgroundTransparency = 1
 
 Status.Text =
-    "● Proteção local: Ativa"
+    "● Conectado"
 
 Status.TextColor3 =
-    Color3.fromRGB(75, 200, 115)
+    Color3.fromRGB(
+        75,
+        200,
+        115
+    )
 
 Status.TextSize = 12
+
 Status.Font =
     Enum.Font.Gotham
 
 Status.TextXAlignment =
     Enum.TextXAlignment.Left
 
-Status.Parent = Main
+Status.Parent =
+    Main
+
+--==================================================
+-- LISTA DE PETS
+--==================================================
+
+local PetList =
+    Instance.new("ScrollingFrame")
+
+PetList.Size =
+    UDim2.new(
+        1,
+        -20,
+        0,
+        125
+    )
+
+PetList.Position =
+    UDim2.fromOffset(
+        10,
+        165
+    )
+
+PetList.BackgroundColor3 =
+    Color3.fromRGB(
+        19,
+        22,
+        28
+    )
+
+PetList.BorderSizePixel = 0
+
+PetList.ScrollBarThickness = 4
+
+PetList.CanvasSize =
+    UDim2.fromOffset(
+        0,
+        0
+    )
+
+PetList.Visible = false
+
+PetList.Parent =
+    Main
+
+local PetCorner =
+    Instance.new("UICorner")
+
+PetCorner.CornerRadius =
+    UDim.new(0, 6)
+
+PetCorner.Parent =
+    PetList
+
+local PetLayout =
+    Instance.new("UIListLayout")
+
+PetLayout.Padding =
+    UDim.new(0, 3)
+
+PetLayout.Parent =
+    PetList
+
+--==================================================
+-- ATUALIZAR LISTA
+--==================================================
+
+local function AtualizarListaPets()
+
+    for _, Obj in ipairs(
+        PetList:GetChildren()
+    ) do
+
+        if Obj:IsA("TextLabel") then
+            Obj:Destroy()
+        end
+    end
+
+    local Pets =
+        EncontrarPets()
+
+    local Count = 0
+
+    for _, Data in pairs(Pets) do
+
+        Count += 1
+
+        local Label =
+            Instance.new("TextLabel")
+
+        Label.Size =
+            UDim2.new(
+                1,
+                -8,
+                0,
+                25
+            )
+
+        Label.BackgroundTransparency = 1
+
+        Label.Text =
+            "🐾 "
+            .. Data.Name
+            .. "  •  "
+            .. Data.Value
+
+        Label.TextColor3 =
+            Color3.fromRGB(
+                230,
+                230,
+                230
+            )
+
+        Label.TextSize = 11
+
+        Label.Font =
+            Enum.Font.Gotham
+
+        Label.TextXAlignment =
+            Enum.TextXAlignment.Left
+
+        Label.Parent =
+            PetList
+    end
+
+    if Count == 0 then
+
+        local Label =
+            Instance.new("TextLabel")
+
+        Label.Size =
+            UDim2.new(
+                1,
+                -8,
+                0,
+                30
+            )
+
+        Label.BackgroundTransparency = 1
+
+        Label.Text =
+            "Nenhum pet encontrado"
+
+        Label.TextColor3 =
+            Color3.fromRGB(
+                160,
+                160,
+                160
+            )
+
+        Label.TextSize = 11
+
+        Label.Font =
+            Enum.Font.Gotham
+
+        Label.Parent =
+            PetList
+    end
+
+    PetList.CanvasSize =
+        UDim2.fromOffset(
+            0,
+            PetLayout.AbsoluteContentSize.Y
+                + 8
+        )
+end
 
 --==================================================
 -- BOLINHA
@@ -512,20 +941,33 @@ local OpenButton =
     Instance.new("ImageButton")
 
 OpenButton.Size =
-    UDim2.fromOffset(55, 55)
+    UDim2.fromOffset(
+        55,
+        55
+    )
 
 OpenButton.Position =
-    UDim2.fromOffset(20, 200)
+    UDim2.fromOffset(
+        20,
+        200
+    )
 
 OpenButton.BackgroundColor3 =
-    Color3.fromRGB(24, 27, 34)
+    Color3.fromRGB(
+        24,
+        27,
+        34
+    )
 
 OpenButton.BorderSizePixel = 0
 
-OpenButton.Image = IMAGE_URL
+OpenButton.Image =
+    IMAGE_URL
+
 OpenButton.Visible = false
 
-OpenButton.Parent = ScreenGui
+OpenButton.Parent =
+    ScreenGui
 
 local OpenCorner =
     Instance.new("UICorner")
@@ -533,7 +975,8 @@ local OpenCorner =
 OpenCorner.CornerRadius =
     UDim.new(1, 0)
 
-OpenCorner.Parent = OpenButton
+OpenCorner.Parent =
+    OpenButton
 
 --==================================================
 -- ABRIR / FECHAR
@@ -542,6 +985,7 @@ OpenCorner.Parent = OpenButton
 Close.MouseButton1Click:Connect(function()
 
     Main.Visible = false
+
     OpenButton.Visible = true
 
 end)
@@ -549,6 +993,7 @@ end)
 OpenButton.MouseButton1Click:Connect(function()
 
     Main.Visible = true
+
     OpenButton.Visible = false
 
 end)
@@ -569,66 +1014,138 @@ Top.InputBegan:Connect(function(Input)
         Enum.UserInputType.Touch then
 
         Dragging = true
-        DragStart = Input.Position
-        StartPosition = Main.Position
 
-        Input.Changed:Connect(function()
+        DragStart =
+            Input.Position
 
-            if Input.UserInputState ==
-                Enum.UserInputState.End then
+        StartPosition =
+            Main.Position
 
-                Dragging = false
+        Input.Changed:Connect(
+            function()
+
+                if Input.UserInputState ==
+                    Enum.UserInputState.End then
+
+                    Dragging = false
+                end
             end
-
-        end)
+        )
     end
 end)
 
-UserInputService.InputChanged:Connect(function(Input)
+UserInputService.InputChanged:Connect(
+    function(Input)
 
-    if not Dragging then
-        return
+        if not Dragging then
+            return
+        end
+
+        if Input.UserInputType ==
+            Enum.UserInputType.MouseMovement
+        or Input.UserInputType ==
+            Enum.UserInputType.Touch then
+
+            local Delta =
+                Input.Position -
+                DragStart
+
+            Main.Position =
+                UDim2.new(
+                    StartPosition.X.Scale,
+                    StartPosition.X.Offset
+                        + Delta.X,
+
+                    StartPosition.Y.Scale,
+                    StartPosition.Y.Offset
+                        + Delta.Y
+                )
+        end
     end
-
-    if Input.UserInputType ==
-        Enum.UserInputType.MouseMovement
-    or Input.UserInputType ==
-        Enum.UserInputType.Touch then
-
-        local Delta =
-            Input.Position - DragStart
-
-        Main.Position =
-            UDim2.new(
-                StartPosition.X.Scale,
-                StartPosition.X.Offset + Delta.X,
-
-                StartPosition.Y.Scale,
-                StartPosition.Y.Offset + Delta.Y
-            )
-    end
-end)
+)
 
 --==================================================
--- CLIQUES
+-- 📶 PARA BOTS
 --==================================================
 
-ParaBots.MouseButton1Click:Connect(function()
+ParaBots.MouseButton1Click:Connect(
+    function()
 
-    task.spawn(TeleportParaBots)
+        task.spawn(
+            TeleportParaBots
+        )
 
-end)
+    end
+)
 
-Auto.MouseButton1Click:Connect(function()
+--==================================================
+-- 🐾 ATIVAR / DESLIGAR PETS
+--==================================================
 
-    task.spawn(AutoRoubo)
+PetsButton.MouseButton1Click:Connect(
+    function()
 
-end)
+        PetsEnabled =
+            not PetsEnabled
 
-Stop.MouseButton1Click:Connect(function()
+        if PetsEnabled then
 
-    StopAutoRoubo()
+            PetsButton.Text =
+                "🐾 PETS: ON"
 
+            PetsButton.BackgroundColor3 =
+                Color3.fromRGB(
+                    45,
+                    150,
+                    90
+                )
+
+            PetList.Visible = true
+
+            Status.Text =
+                "● Identificando pets..."
+
+            AtualizarListaPets()
+
+            Status.Text =
+                "● Pets identificados"
+
+        else
+
+            PetsButton.Text =
+                "🐾 PETS: OFF"
+
+            PetsButton.BackgroundColor3 =
+                Color3.fromRGB(
+                    65,
+                    85,
+                    105
+                )
+
+            PetList.Visible = false
+
+            Status.Text =
+                "● Conectado"
+        end
+    end
+)
+
+--==================================================
+-- 🔄 ATUALIZA AUTOMATICAMENTE
+--==================================================
+
+task.spawn(function()
+
+    while ScreenGui.Parent do
+
+        if PetsEnabled then
+
+            AtualizarListaPets()
+
+        end
+
+        task.wait(2)
+    end
 end)
 
 --==================================================
@@ -636,6 +1153,5 @@ end)
 --==================================================
 
 print("🪽 Seraphim-Hub carregado")
-print("🛡️ Proteção local: ATIVA")
-print("📶 Para Bots: 0.7 segundo")
-print("🏃 Auto Roubo: 100")
+print("📶 Para Bots: 1.5 segundo")
+print("🐾 Identificador de Pets: pronto")
