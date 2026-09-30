@@ -1,4 +1,6 @@
---// 🪽 SERAPHIM HUB
+--==================================================
+-- 🪽 SERAPHIM HUB
+--==================================================
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -7,8 +9,8 @@ local RunService = game:GetService("RunService")
 local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
-local IMAGE_ID = "rbxassetid://97885929587100"
-local AUTO_ROUBO_SPEED = 750
+local IMAGE_URL = "https://i.ibb.co/4wbF9PG0/211d12a0-a94f-11f1-b316-2d99c2fb1ccd.png"
+local AUTO_ROUBO_SPEED = 650
 
 --==================================================
 -- ENCONTRAR BASE
@@ -58,6 +60,7 @@ end
 
 --==================================================
 -- 📶 PARA BOTS
+-- VAI → FICA 1 SEGUNDO → VOLTA
 --==================================================
 
 local function TeleportParaBots()
@@ -86,7 +89,7 @@ local function TeleportParaBots()
     Root.CFrame =
         Point.CFrame + Vector3.new(0, 4, 0)
 
-    task.wait(0.5)
+    task.wait(1)
 
     if Root and Root.Parent then
         Root.CFrame = PosicaoOriginal
@@ -239,7 +242,7 @@ local Logo = Instance.new("ImageLabel")
 Logo.Size = UDim2.fromOffset(27, 27)
 Logo.Position = UDim2.fromOffset(8, 6)
 Logo.BackgroundTransparency = 1
-Logo.Image = IMAGE_ID
+Logo.Image = IMAGE_URL
 Logo.Parent = Top
 
 --==================================================
@@ -272,7 +275,7 @@ Close.Font = Enum.Font.Gotham
 Close.Parent = Top
 
 --==================================================
--- CRIAR BOTÕES
+-- CRIAR BOTÃO
 --==================================================
 
 local function CreateButton(Text, Position, Background)
@@ -335,15 +338,15 @@ Status.TextXAlignment = Enum.TextXAlignment.Left
 Status.Parent = Main
 
 --==================================================
--- BOTÃO REABRIR
+-- BOLINHA FLUTUANTE
 --==================================================
 
 local OpenButton = Instance.new("ImageButton")
-OpenButton.Size = UDim2.fromOffset(52, 52)
-OpenButton.Position = UDim2.fromOffset(15, 180)
+OpenButton.Size = UDim2.fromOffset(55, 55)
+OpenButton.Position = UDim2.fromOffset(20, 200)
 OpenButton.BackgroundColor3 = Color3.fromRGB(24, 27, 34)
 OpenButton.BorderSizePixel = 0
-OpenButton.Image = IMAGE_ID
+OpenButton.Image = IMAGE_URL
 OpenButton.Visible = false
 OpenButton.Parent = ScreenGui
 
@@ -356,13 +359,17 @@ OpenCorner.Parent = OpenButton
 --==================================================
 
 Close.MouseButton1Click:Connect(function()
+
     Main.Visible = false
     OpenButton.Visible = true
+
 end)
 
 OpenButton.MouseButton1Click:Connect(function()
+
     Main.Visible = true
     OpenButton.Visible = false
+
 end)
 
 --==================================================
@@ -375,8 +382,10 @@ local StartPosition
 
 Top.InputBegan:Connect(function(Input)
 
-    if Input.UserInputType == Enum.UserInputType.MouseButton1
-    or Input.UserInputType == Enum.UserInputType.Touch then
+    if Input.UserInputType ==
+        Enum.UserInputType.MouseButton1
+    or Input.UserInputType ==
+        Enum.UserInputType.Touch then
 
         Dragging = true
         DragStart = Input.Position
@@ -389,6 +398,7 @@ Top.InputBegan:Connect(function(Input)
 
                 Dragging = false
             end
+
         end)
     end
 end)
@@ -434,4 +444,5 @@ Stop.MouseButton1Click:Connect(function()
 end)
 
 print("🪽 Seraphim-Hub carregado")
-print("🏃 Auto Roubo Fly: 750")
+print("📶 Para Bots: 1 segundo")
+print("🏃 Auto Roubo Fly: 650")
