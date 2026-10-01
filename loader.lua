@@ -1,6 +1,8 @@
 --// Seraphim-Hub
---// Detecta automaticamente as áreas do mapa
---// Stop Bots -> percorre as áreas -> 7 segundos -> retorna
+--// Detecta automaticamente a área atual
+--// Fora de AngelsDemons -> segue para frente
+--// Em AngelsDemons -> volta para trás até SafeZone
+--// Não repete a área onde o jogador já está
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -14,6 +16,10 @@ local Player = Players.LocalPlayer
 local TEMPO_NO_FINAL = 7
 local ALTURA_DO_TELEPORTE = 4
 local TEMPO_ENTRE_AREAS = 0.25
+
+-- Distância máxima para considerar que o jogador
+-- está dentro de determinada área.
+local DISTANCIA_DETECCAO = 250
 
 --==================================================
 -- ÁREAS E ORDEM
@@ -61,7 +67,6 @@ local Corner = Instance.new("UICorner")
 Corner.CornerRadius = UDim.new(0, 9)
 Corner.Parent = Main
 
--- Borda azul-claro somente no painel
 local Stroke = Instance.new("UIStroke")
 Stroke.Color = Color3.fromRGB(100, 200, 255)
 Stroke.Thickness = 2
@@ -174,11 +179,14 @@ local function EncontrarArea(Nome)
         return Area
     end
 
-    -- Procura recursivamente caso esteja dentro de outra pasta
     for _, Object in ipairs(Container:GetDescendants()) do
 
         if Object.Name == Nome
-        and (Object:IsA("Model") or Object:IsA("Folder")) then
+        and (
+            Object:IsA("Model")
+            or Object:IsA("Folder")
+            or Object:IsA("BasePart")
+        ) then
 
             return Object
         end
@@ -197,7 +205,12 @@ local function EncontrarPontoDaArea(Area)
         return nil
     end
 
-    -- Se for Model, tenta usar o Pivot
+    -- BasePart diretamente
+    if Area:IsA("BasePart") then
+        return Area.CFrame
+    end
+
+    -- Model
     if Area:IsA("Model") then
 
         local Success, Pivot = pcall(function()
@@ -209,23 +222,18 @@ local function EncontrarPontoDaArea(Area)
         end
     end
 
-    -- Procura uma BasePart dentro da área
+    -- Primeiro BasePart encontrado
     local Part = Area:FindFirstChildWhichIsA("BasePart", true)
 
     if Part then
         return Part.CFrame
     end
 
-    -- Se for uma BasePart diretamente
-    if Area:IsA("BasePart") then
-        return Area.CFrame
-    end
-
     return nil
 end
 
 --==================================================
--- MONTAR ROTA
+-- MONTAR TODAS AS ÁREAS
 --==================================================
 
 local function CriarRota()
@@ -246,17 +254,17 @@ local function CriarRota()
 
                 if Ponto then
 
-                    table.insert(Rota, {
+                    Rota[ID + 1] = {
                         ID = ID,
                         Nome = Nome,
                         Area = Area,
                         CFrame = Ponto
-                    })
+                    }
 
                 else
 
                     warn(
-                        "Seraphim-Hub: Área encontrada, mas sem ponto:",
+                        "Seraphim-Hub: Área sem ponto:",
                         Nome
                     )
 
@@ -274,6 +282,44 @@ local function CriarRota()
     end
 
     return Rota
+end
+
+--==================================================
+-- ENCONTRAR ÁREA ATUAL
+--==================================================
+
+local function EncontrarAreaAtual(Rota, Root)
+
+    if not Root then
+        return nil
+    end
+
+    local Posicao = Root.Position
+
+    local MelhorArea = nil
+    local MenorDistancia = math.huge
+
+    for _, Destino in ipairs(Rota) do
+
+        if Destino and Destino.CFrame then
+
+            local Distancia =
+                (Posicao - Destino.CFrame.Position).Magnitude
+
+            if Distancia < MenorDistancia then
+
+                MenorDistancia = Distancia
+                MelhorArea = Destino
+
+            end
+        end
+    end
+
+    if MenorDistancia <= DISTANCIA_DETECCAO then
+        return MelhorArea
+    end
+
+    return nil
 end
 
 --==================================================
@@ -308,12 +354,15 @@ local function ExecutarRota()
     local Character = Player.Character
 
     if not Character then
+        Status.Text = "Personagem não encontrado!"
         return
     end
 
-    local Root = Character:FindFirstChild("HumanoidRootPart")
+    local Root =
+        Character:FindFirstChild("HumanoidRootPart")
 
     if not Root then
+        Status.Text = "HumanoidRootPart não encontrado!"
         return
     end
 
@@ -330,83 +379,158 @@ local function ExecutarRota()
         return
     end
 
-    Executando = true
-
-    -- Guarda o local inicial
-    local PosicaoInicial = Root.CFrame
-
     --==================================================
-    -- PERCORRER ÁREAS
+    -- DESCOBRIR ONDE O JOGADOR ESTÁ
     --==================================================
 
-    for Numero, Destino in ipairs(Rota) do
+    local AreaAtual =
+        EncontrarAreaAtual(Rota, Root)
 
-        if not Executando then
-            break
-        end
+    local IndiceAtual = nil
 
-        if Player.Character ~= Character then
-            break
-        end
+    if AreaAtual then
 
-        local NovoRoot =
-            Character:FindFirstChild("HumanoidRootPart")
-
-        if not NovoRoot then
-            break
-        end
+        IndiceAtual = AreaAtual.ID
 
         Status.Text =
-            Destino.Nome
-            .. "  "
-            .. Numero
-            .. "/"
-            .. #Rota
+            "Atual: "
+            .. AreaAtual.Nome
 
-        Teleportar(
-            NovoRoot,
-            Destino.CFrame
-        )
+        task.wait(0.5)
 
-        task.wait(TEMPO_ENTRE_AREAS)
+    else
+
+        -- Se não detectar nenhuma área,
+        -- começa pela SafeZone.
+        IndiceAtual = -1
+
+        Status.Text = "Área não detectada"
+
+        task.wait(0.5)
+    end
+
+    Executando = true
+
+    --==================================================
+    -- ANGELSDEMONS
+    --==================================================
+    -- Se já estiver em AngelsDemons,
+    -- volta de trás para frente até SafeZone.
+
+    if IndiceAtual == 12 then
+
+        for ID = 11, 0, -1 do
+
+            if not Executando then
+                break
+            end
+
+            if Player.Character ~= Character then
+                break
+            end
+
+            local Destino = Rota[ID + 1]
+
+            if Destino then
+
+                local NovoRoot =
+                    Character:FindFirstChild(
+                        "HumanoidRootPart"
+                    )
+
+                if not NovoRoot then
+                    break
+                end
+
+                Status.Text =
+                    Destino.Nome
+                    .. "  ← voltando"
+
+                Teleportar(
+                    NovoRoot,
+                    Destino.CFrame
+                )
+
+                task.wait(TEMPO_ENTRE_AREAS)
+            end
+        end
+
+    else
+
+        --==================================================
+        -- FRENTE
+        --==================================================
+        -- Vai somente para as áreas posteriores
+        -- à área em que o jogador já está.
+
+        local Inicio = IndiceAtual + 1
+
+        if Inicio < 0 then
+            Inicio = 0
+        end
+
+        for ID = Inicio, 12 do
+
+            if not Executando then
+                break
+            end
+
+            if Player.Character ~= Character then
+                break
+            end
+
+            local Destino = Rota[ID + 1]
+
+            if Destino then
+
+                local NovoRoot =
+                    Character:FindFirstChild(
+                        "HumanoidRootPart"
+                    )
+
+                if not NovoRoot then
+                    break
+                end
+
+                Status.Text =
+                    Destino.Nome
+                    .. "  → avançando"
+
+                Teleportar(
+                    NovoRoot,
+                    Destino.CFrame
+                )
+
+                task.wait(TEMPO_ENTRE_AREAS)
+            end
+        end
     end
 
     --==================================================
-    -- ESPERA NO FINAL
+    -- FINAL
     --==================================================
 
     if Executando
     and Player.Character == Character then
 
         local FinalRoot =
-            Character:FindFirstChild("HumanoidRootPart")
+            Character:FindFirstChild(
+                "HumanoidRootPart"
+            )
 
         if FinalRoot then
 
-            Status.Text = "Final da rota: 7s"
+            Status.Text =
+                "Final da rota: "
+                .. TEMPO_NO_FINAL
+                .. "s"
 
             task.wait(TEMPO_NO_FINAL)
-
-            --==================================================
-            -- RETORNAR
-            --==================================================
-
-            if Player.Character == Character then
-
-                local ReturnRoot =
-                    Character:FindFirstChild("HumanoidRootPart")
-
-                if ReturnRoot then
-
-                    ReturnRoot.CFrame =
-                        PosicaoInicial
-
-                end
-            end
         end
     end
 
     Status.Text = "Aguardando..."
+
     Executando = false
 end
 
@@ -482,3 +606,6 @@ UserInputService.InputChanged:Connect(function(Input)
 end)
 
 print("Seraphim-Hub carregado!")
+
+
+
