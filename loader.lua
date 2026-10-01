@@ -1,5 +1,5 @@
 --// Seraphim-Hub
---// Salva posição e teleporta por 7 segundos
+--// Salvar Posição -> Stop Bots -> 7 segundos -> voltar
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -22,8 +22,8 @@ ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
 local Main = Instance.new("Frame")
 Main.Name = "Main"
-Main.Size = UDim2.fromOffset(240, 145)
-Main.Position = UDim2.new(0.5, -120, 0.5, -72)
+Main.Size = UDim2.fromOffset(220, 135)
+Main.Position = UDim2.new(0.5, -110, 0.5, -67)
 Main.BackgroundColor3 = Color3.fromRGB(15, 18, 25)
 Main.BorderSizePixel = 0
 Main.Parent = ScreenGui
@@ -43,7 +43,7 @@ Stroke.Parent = Main
 --==================================================
 
 local Top = Instance.new("Frame")
-Top.Size = UDim2.new(1, 0, 0, 34)
+Top.Size = UDim2.new(1, 0, 0, 32)
 Top.BackgroundColor3 = Color3.fromRGB(10, 13, 20)
 Top.BorderSizePixel = 0
 Top.Parent = Main
@@ -53,7 +53,7 @@ TopCorner.CornerRadius = UDim.new(0, 9)
 TopCorner.Parent = Top
 
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -45, 1, 0)
+Title.Size = UDim2.new(1, -42, 1, 0)
 Title.Position = UDim2.fromOffset(9, 0)
 Title.BackgroundTransparency = 1
 Title.Text = "Seraphim-Hub"
@@ -68,13 +68,13 @@ Title.Parent = Top
 --==================================================
 
 local CloseButton = Instance.new("TextButton")
-CloseButton.Size = UDim2.fromOffset(25, 25)
-CloseButton.Position = UDim2.new(1, -30, 0, 4)
+CloseButton.Size = UDim2.fromOffset(24, 24)
+CloseButton.Position = UDim2.new(1, -29, 0, 4)
 CloseButton.BackgroundColor3 = Color3.fromRGB(30, 34, 43)
 CloseButton.BorderSizePixel = 0
 CloseButton.Text = "X"
 CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.TextSize = 12
+CloseButton.TextSize = 11
 CloseButton.Font = Enum.Font.GothamBold
 CloseButton.Parent = Top
 
@@ -83,18 +83,19 @@ CloseCorner.CornerRadius = UDim.new(0, 6)
 CloseCorner.Parent = CloseButton
 
 --==================================================
--- POSIÇÃO SALVA
+-- VARIÁVEIS
 --==================================================
 
 local SavedPosition = nil
+local Teleportando = false
 
 --==================================================
 -- BOTÃO SALVAR POSIÇÃO
 --==================================================
 
 local SaveButton = Instance.new("TextButton")
-SaveButton.Size = UDim2.new(1, -18, 0, 38)
-SaveButton.Position = UDim2.fromOffset(9, 43)
+SaveButton.Size = UDim2.new(1, -16, 0, 36)
+SaveButton.Position = UDim2.fromOffset(8, 40)
 SaveButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 SaveButton.BorderSizePixel = 0
 SaveButton.Text = "Salvar Posição"
@@ -112,8 +113,8 @@ SaveCorner.Parent = SaveButton
 --==================================================
 
 local StopButton = Instance.new("TextButton")
-StopButton.Size = UDim2.new(1, -18, 0, 38)
-StopButton.Position = UDim2.fromOffset(9, 88)
+StopButton.Size = UDim2.new(1, -16, 0, 36)
+StopButton.Position = UDim2.fromOffset(8, 84)
 StopButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 StopButton.BorderSizePixel = 0
 StopButton.Text = "🛑 Stop Bots"
@@ -157,8 +158,6 @@ end)
 -- STOP BOTS
 --==================================================
 
-local Teleportando = false
-
 StopButton.MouseButton1Click:Connect(function()
 
     if Teleportando then
@@ -189,23 +188,24 @@ StopButton.MouseButton1Click:Connect(function()
 
     Teleportando = true
 
-    -- Guarda o local atual para retornar depois
+    -- Guarda o local atual
     local ReturnPosition = Root.CFrame
 
-    -- Vai para a posição salva
+    -- Teleporta para a posição salva
     Root.CFrame = SavedPosition
 
-    StopButton.Text = "🛑 Parando Bots..."
+    StopButton.Text = "🛑 Stop Bots: 7s"
 
-    -- Espera 7 segundos
+    -- Aguarda 7 segundos
     task.wait(7)
 
-    -- Volta para onde estava antes
+    -- Verifica se o personagem continua existindo
     if Player.Character == Character then
 
         local NewRoot = Character:FindFirstChild("HumanoidRootPart")
 
         if NewRoot then
+            -- Retorna exatamente ao local anterior
             NewRoot.CFrame = ReturnPosition
         end
     end
@@ -215,37 +215,11 @@ StopButton.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
--- BOTÃO REABRIR
---==================================================
-
-local OpenButton = Instance.new("TextButton")
-OpenButton.Name = "Reabrir"
-OpenButton.Size = UDim2.fromOffset(50, 50)
-OpenButton.Position = UDim2.fromOffset(15, 180)
-OpenButton.BackgroundColor3 = Color3.fromRGB(10, 10, 18)
-OpenButton.Text = "SH"
-OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-OpenButton.TextSize = 13
-OpenButton.Font = Enum.Font.GothamBold
-OpenButton.Visible = false
-OpenButton.Parent = ScreenGui
-
-local OpenCorner = Instance.new("UICorner")
-OpenCorner.CornerRadius = UDim.new(1, 0)
-OpenCorner.Parent = OpenButton
-
---==================================================
--- ABRIR / FECHAR
+-- FECHAR
 --==================================================
 
 CloseButton.MouseButton1Click:Connect(function()
     Main.Visible = false
-    OpenButton.Visible = true
-end)
-
-OpenButton.MouseButton1Click:Connect(function()
-    Main.Visible = true
-    OpenButton.Visible = false
 end)
 
 --==================================================
