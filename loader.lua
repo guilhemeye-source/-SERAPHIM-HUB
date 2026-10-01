@@ -1,5 +1,5 @@
 --// Seraphim-Hub
---// Teleporta para a Base e volta após 1.3 segundos
+--// Salva posição e teleporta por 7 segundos
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -22,16 +22,17 @@ ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
 local Main = Instance.new("Frame")
 Main.Name = "Main"
-Main.Size = UDim2.fromOffset(300, 160)
-Main.Position = UDim2.new(0.5, -150, 0.5, -80)
+Main.Size = UDim2.fromOffset(240, 145)
+Main.Position = UDim2.new(0.5, -120, 0.5, -72)
 Main.BackgroundColor3 = Color3.fromRGB(15, 18, 25)
 Main.BorderSizePixel = 0
 Main.Parent = ScreenGui
 
 local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 10)
+Corner.CornerRadius = UDim.new(0, 9)
 Corner.Parent = Main
 
+-- Borda azul-claro somente no painel
 local Stroke = Instance.new("UIStroke")
 Stroke.Color = Color3.fromRGB(100, 200, 255)
 Stroke.Thickness = 2
@@ -42,179 +43,175 @@ Stroke.Parent = Main
 --==================================================
 
 local Top = Instance.new("Frame")
-Top.Size = UDim2.new(1, 0, 0, 38)
+Top.Size = UDim2.new(1, 0, 0, 34)
 Top.BackgroundColor3 = Color3.fromRGB(10, 13, 20)
 Top.BorderSizePixel = 0
 Top.Parent = Main
 
 local TopCorner = Instance.new("UICorner")
-TopCorner.CornerRadius = UDim.new(0, 10)
+TopCorner.CornerRadius = UDim.new(0, 9)
 TopCorner.Parent = Top
 
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -55, 1, 0)
-Title.Position = UDim2.fromOffset(10, 0)
+Title.Size = UDim2.new(1, -45, 1, 0)
+Title.Position = UDim2.fromOffset(9, 0)
 Title.BackgroundTransparency = 1
 Title.Text = "Seraphim-Hub"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 16
+Title.TextSize = 14
 Title.Font = Enum.Font.GothamBold
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Top
 
 --==================================================
--- BOTÃO FECHAR
+-- FECHAR
 --==================================================
 
 local CloseButton = Instance.new("TextButton")
-CloseButton.Size = UDim2.fromOffset(28, 28)
-CloseButton.Position = UDim2.new(1, -33, 0, 5)
-CloseButton.BackgroundColor3 = Color3.fromRGB(35, 40, 52)
+CloseButton.Size = UDim2.fromOffset(25, 25)
+CloseButton.Position = UDim2.new(1, -30, 0, 4)
+CloseButton.BackgroundColor3 = Color3.fromRGB(30, 34, 43)
 CloseButton.BorderSizePixel = 0
 CloseButton.Text = "X"
 CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.TextSize = 13
+CloseButton.TextSize = 12
 CloseButton.Font = Enum.Font.GothamBold
 CloseButton.Parent = Top
 
 local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 7)
+CloseCorner.CornerRadius = UDim.new(0, 6)
 CloseCorner.Parent = CloseButton
 
 --==================================================
--- ENCONTRAR BASE
+-- POSIÇÃO SALVA
 --==================================================
 
-local function FindBaseSpawn()
-    local Base = workspace:FindFirstChild("Base", true)
-
-    if Base then
-        if Base:IsA("SpawnLocation") then
-            return Base
-        end
-
-        if Base:IsA("Model") then
-            local Spawn = Base:FindFirstChildWhichIsA("SpawnLocation", true)
-
-            if Spawn then
-                return Spawn
-            end
-        end
-
-        if Base:IsA("BasePart") then
-            return Base
-        end
-    end
-
-    local Spawns = {}
-
-    for _, Obj in ipairs(workspace:GetDescendants()) do
-        if Obj:IsA("SpawnLocation") then
-            table.insert(Spawns, Obj)
-        end
-    end
-
-    if #Spawns == 1 then
-        return Spawns[1]
-    end
-
-    for _, Spawn in ipairs(Spawns) do
-        local Nome = string.lower(Spawn.Name)
-
-        if Nome:find("base")
-        or Nome:find("spawn")
-        or Nome:find("home") then
-            return Spawn
-        end
-    end
-
-    warn("Seraphim-Hub: Ponto da Base não encontrado!")
-    return nil
-end
+local SavedPosition = nil
 
 --==================================================
--- TELEPORTE E RETORNO
+-- BOTÃO SALVAR POSIÇÃO
 --==================================================
 
-local Teleportando = false
+local SaveButton = Instance.new("TextButton")
+SaveButton.Size = UDim2.new(1, -18, 0, 38)
+SaveButton.Position = UDim2.fromOffset(9, 43)
+SaveButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+SaveButton.BorderSizePixel = 0
+SaveButton.Text = "Salvar Posição"
+SaveButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SaveButton.TextSize = 13
+SaveButton.Font = Enum.Font.GothamBold
+SaveButton.Parent = Main
 
-local function TeleportToBaseAndBack()
-
-    if Teleportando then
-        return
-    end
-
-    local Character = Player.Character
-
-    if not Character then
-        return
-    end
-
-    local Root = Character:FindFirstChild("HumanoidRootPart")
-    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
-
-    if not Root or not Humanoid then
-        return
-    end
-
-    local Point = FindBaseSpawn()
-
-    if not Point then
-        return
-    end
-
-    Teleportando = true
-
-    -- Salva exatamente o local original
-    local LocalOriginal = Root.CFrame
-
-    -- Teleporta para a Base
-    local LocalBase = Point.CFrame + Vector3.new(0, 4, 0)
-
-    Root.CFrame = LocalBase
-
-    -- Fica na Base por 1.3 segundos
-    task.wait(1.3)
-
-    -- Volta para o local original
-    if Player.Character == Character then
-
-        local NovoRoot = Character:FindFirstChild("HumanoidRootPart")
-
-        if NovoRoot then
-            NovoRoot.CFrame = LocalOriginal
-        end
-    end
-
-    Teleportando = false
-end
+local SaveCorner = Instance.new("UICorner")
+SaveCorner.CornerRadius = UDim.new(0, 7)
+SaveCorner.Parent = SaveButton
 
 --==================================================
 -- BOTÃO STOP BOTS
 --==================================================
 
-local BostButton = Instance.new("TextButton")
-BostButton.Size = UDim2.new(1, -20, 0, 45)
-BostButton.Position = UDim2.fromOffset(10, 55)
-BostButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-BostButton.BorderSizePixel = 0
-BostButton.Text = "🛑 Stop Bots"
-BostButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-BostButton.TextSize = 15
-BostButton.Font = Enum.Font.GothamBold
-BostButton.Parent = Main
+local StopButton = Instance.new("TextButton")
+StopButton.Size = UDim2.new(1, -18, 0, 38)
+StopButton.Position = UDim2.fromOffset(9, 88)
+StopButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+StopButton.BorderSizePixel = 0
+StopButton.Text = "🛑 Stop Bots"
+StopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+StopButton.TextSize = 13
+StopButton.Font = Enum.Font.GothamBold
+StopButton.Parent = Main
 
-local BostCorner = Instance.new("UICorner")
-BostCorner.CornerRadius = UDim.new(0, 8)
-BostCorner.Parent = BostButton
+local StopCorner = Instance.new("UICorner")
+StopCorner.CornerRadius = UDim.new(0, 7)
+StopCorner.Parent = StopButton
 
-local BostStroke = Instance.new("UIStroke")
-BostStroke.Color = Color3.fromRGB(100, 200, 255)
-BostStroke.Thickness = 2
-BostStroke.Parent = BostButton
+--==================================================
+-- SALVAR POSIÇÃO
+--==================================================
 
-BostButton.MouseButton1Click:Connect(function()
-    TeleportToBaseAndBack()
+SaveButton.MouseButton1Click:Connect(function()
+
+    local Character = Player.Character
+    if not Character then
+        return
+    end
+
+    local Root = Character:FindFirstChild("HumanoidRootPart")
+    if not Root then
+        return
+    end
+
+    SavedPosition = Root.CFrame
+
+    SaveButton.Text = "Posição Salva!"
+
+    task.delay(1, function()
+        if SaveButton then
+            SaveButton.Text = "Salvar Posição"
+        end
+    end)
+end)
+
+--==================================================
+-- STOP BOTS
+--==================================================
+
+local Teleportando = false
+
+StopButton.MouseButton1Click:Connect(function()
+
+    if Teleportando then
+        return
+    end
+
+    if not SavedPosition then
+        StopButton.Text = "Salve uma posição!"
+
+        task.delay(1.5, function()
+            if StopButton then
+                StopButton.Text = "🛑 Stop Bots"
+            end
+        end)
+
+        return
+    end
+
+    local Character = Player.Character
+    if not Character then
+        return
+    end
+
+    local Root = Character:FindFirstChild("HumanoidRootPart")
+    if not Root then
+        return
+    end
+
+    Teleportando = true
+
+    -- Guarda o local atual para retornar depois
+    local ReturnPosition = Root.CFrame
+
+    -- Vai para a posição salva
+    Root.CFrame = SavedPosition
+
+    StopButton.Text = "🛑 Parando Bots..."
+
+    -- Espera 7 segundos
+    task.wait(7)
+
+    -- Volta para onde estava antes
+    if Player.Character == Character then
+
+        local NewRoot = Character:FindFirstChild("HumanoidRootPart")
+
+        if NewRoot then
+            NewRoot.CFrame = ReturnPosition
+        end
+    end
+
+    StopButton.Text = "🛑 Stop Bots"
+    Teleportando = false
 end)
 
 --==================================================
@@ -223,12 +220,12 @@ end)
 
 local OpenButton = Instance.new("TextButton")
 OpenButton.Name = "Reabrir"
-OpenButton.Size = UDim2.fromOffset(60, 60)
-OpenButton.Position = UDim2.fromOffset(18, 200)
+OpenButton.Size = UDim2.fromOffset(50, 50)
+OpenButton.Position = UDim2.fromOffset(15, 180)
 OpenButton.BackgroundColor3 = Color3.fromRGB(10, 10, 18)
 OpenButton.Text = "SH"
 OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-OpenButton.TextSize = 14
+OpenButton.TextSize = 13
 OpenButton.Font = Enum.Font.GothamBold
 OpenButton.Visible = false
 OpenButton.Parent = ScreenGui
@@ -252,7 +249,7 @@ OpenButton.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
--- ARRASTAR JANELA
+-- ARRASTAR
 --==================================================
 
 local Dragging = false
@@ -297,10 +294,6 @@ UserInputService.InputChanged:Connect(function(Input)
         )
     end
 end)
-
---==================================================
--- INÍCIO
---==================================================
 
 print("Seraphim-Hub carregado!")
 
