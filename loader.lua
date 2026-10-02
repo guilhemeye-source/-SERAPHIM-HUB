@@ -1,434 +1,481 @@
---// Seraphim-Hub - Baseado no estilo Linno Hub (Rayfield)
---// Tema roxo | Steal An Egg
-
---==================================================
--- CARREGAR RAYFIELD
---==================================================
-
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-
---==================================================
--- CONFIG
---==================================================
+--==========================================================
+-- MEU HUB + ANALISADOR DE OVOS
+-- Para uso no seu próprio jogo no Roblox Studio
+--==========================================================
 
 local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local CollectionService = game:GetService("CollectionService")
+
 local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
 
-local DistanciaDoChao = 3
-local TempoEntreAcoes = 0.4
-local VidaTravada = 100000
+--==========================================================
+-- CONFIGURAÇÃO
+--==========================================================
 
-local NomesOvo  = { "Egg", "Ovo", "Nest" }
-local NomesPlot = { "Plot", "Base", "CollectZone", "Collect", "Garden", "Pen" }
+local Config = {
+    NomeHub = "MEU HUB EXCLUSIVO",
+    Versao = "v1.0.0",
 
---==================================================
--- GOD MODE
---==================================================
+    CorPrincipal = Color3.fromRGB(0, 170, 255),
+    CorFundo = Color3.fromRGB(25, 25, 25),
+    CorMenu = Color3.fromRGB(18, 18, 18),
 
-local function AplicarGodMode(Character)
-    if not Character then return end
-    local Antigo = Character:FindFirstChild("SeraphimGodMode")
-    if Antigo then Antigo:Destroy() end
+    JanelaLargura = 520,
+    JanelaAltura = 360
+}
 
-    local FF = Instance.new("ForceField")
-    FF.Name = "SeraphimGodMode"
-    FF.Visible = false
-    FF.Parent = Character
+--==========================================================
+-- REMOVER INTERFACE ANTIGA
+--==========================================================
 
-    local Hum = Character:FindFirstChildOfClass("Humanoid")
-    if Hum then
-        Hum.MaxHealth = math.max(Hum.MaxHealth, VidaTravada)
-        Hum.Health = Hum.MaxHealth
-    end
+local antigo = PlayerGui:FindFirstChild("MeuHubCustomizado")
+
+if antigo then
+    antigo:Destroy()
 end
 
-if Player.Character then AplicarGodMode(Player.Character) end
-Player.CharacterAdded:Connect(function(Char)
-    task.wait(0.2)
-    AplicarGodMode(Char)
+--==========================================================
+-- GUI PRINCIPAL
+--==========================================================
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "MeuHubCustomizado"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.fromOffset(
+    Config.JanelaLargura,
+    Config.JanelaAltura
+)
+MainFrame.Position = UDim2.new(0.5, -260, 0.5, -180)
+MainFrame.BackgroundColor3 = Config.CorFundo
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 8)
+MainCorner.Parent = MainFrame
+
+--==========================================================
+-- BARRA LATERAL
+--==========================================================
+
+local Sidebar = Instance.new("Frame")
+Sidebar.Size = UDim2.new(0, 140, 1, 0)
+Sidebar.BackgroundColor3 = Config.CorMenu
+Sidebar.BorderSizePixel = 0
+Sidebar.Parent = MainFrame
+
+local SideCorner = Instance.new("UICorner")
+SideCorner.CornerRadius = UDim.new(0, 8)
+SideCorner.Parent = Sidebar
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -20, 0, 35)
+Title.Position = UDim2.fromOffset(10, 10)
+Title.BackgroundTransparency = 1
+Title.Text = Config.NomeHub
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 15
+Title.Font = Enum.Font.SourceSansBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Sidebar
+
+local Version = Instance.new("TextLabel")
+Version.Size = UDim2.new(1, -20, 0, 20)
+Version.Position = UDim2.fromOffset(10, 38)
+Version.BackgroundTransparency = 1
+Version.Text = Config.Versao
+Version.TextColor3 = Config.CorPrincipal
+Version.TextSize = 12
+Version.Font = Enum.Font.SourceSansItalic
+Version.TextXAlignment = Enum.TextXAlignment.Left
+Version.Parent = Sidebar
+
+--==========================================================
+-- BOTÃO ANALISAR
+--==========================================================
+
+local AnalyzeButton = Instance.new("TextButton")
+AnalyzeButton.Size = UDim2.new(1, -20, 0, 42)
+AnalyzeButton.Position = UDim2.fromOffset(10, 80)
+AnalyzeButton.BackgroundColor3 = Config.CorPrincipal
+AnalyzeButton.BorderSizePixel = 0
+AnalyzeButton.Text = "🔎 ANALISAR OVOS"
+AnalyzeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AnalyzeButton.TextSize = 14
+AnalyzeButton.Font = Enum.Font.SourceSansBold
+AnalyzeButton.Parent = Sidebar
+
+local AnalyzeCorner = Instance.new("UICorner")
+AnalyzeCorner.CornerRadius = UDim.new(0, 6)
+AnalyzeCorner.Parent = AnalyzeButton
+
+--==========================================================
+-- BOTÃO FECHAR
+--==========================================================
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.fromOffset(30, 30)
+CloseButton.Position = UDim2.new(1, -35, 0, 5)
+CloseButton.BackgroundTransparency = 1
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(220, 70, 70)
+CloseButton.TextSize = 18
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.Parent = MainFrame
+
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
 end)
 
-task.spawn(function()
-    while true do
-        task.wait(0.03)
-        local Char = Player.Character
-        if Char then
-            local Hum = Char:FindFirstChildOfClass("Humanoid")
-            if Hum then
-                if Hum.MaxHealth < VidaTravada then Hum.MaxHealth = VidaTravada end
-                if Hum.Health < Hum.MaxHealth then Hum.Health = Hum.MaxHealth end
-            end
-            if not Char:FindFirstChild("SeraphimGodMode") then
-                AplicarGodMode(Char)
-            end
+--==========================================================
+-- ÁREA DE RESULTADOS
+--==========================================================
+
+local Results = Instance.new("ScrollingFrame")
+Results.Name = "Results"
+Results.Size = UDim2.new(1, -160, 1, -55)
+Results.Position = UDim2.fromOffset(150, 45)
+Results.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Results.BorderSizePixel = 0
+Results.ScrollBarThickness = 5
+Results.CanvasSize = UDim2.new(0, 0, 0, 0)
+Results.Parent = MainFrame
+
+local ResultsCorner = Instance.new("UICorner")
+ResultsCorner.CornerRadius = UDim.new(0, 6)
+ResultsCorner.Parent = Results
+
+local List = Instance.new("UIListLayout")
+List.Padding = UDim.new(0, 4)
+List.SortOrder = Enum.SortOrder.LayoutOrder
+List.Parent = Results
+
+--==========================================================
+-- FUNÇÃO: CAMINHO COMPLETO
+--==========================================================
+
+local function obterCaminho(objeto)
+    local partes = {}
+    local atual = objeto
+
+    while atual and atual ~= game do
+        table.insert(partes, 1, atual.Name)
+        atual = atual.Parent
+    end
+
+    return table.concat(partes, ".")
+end
+
+--==========================================================
+-- FUNÇÃO: ADICIONAR TEXTO AO PAINEL
+--==========================================================
+
+local function adicionarResultado(texto, destaque)
+    local Label = Instance.new("TextLabel")
+
+    Label.Size = UDim2.new(1, -10, 0, 22)
+    Label.BackgroundTransparency = 1
+    Label.Text = texto
+    Label.TextColor3 = destaque
+        and Config.CorPrincipal
+        or Color3.fromRGB(210, 210, 210)
+
+    Label.TextSize = 12
+    Label.Font = destaque
+        and Enum.Font.SourceSansBold
+        or Enum.Font.SourceSans
+
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.TextWrapped = true
+    Label.AutomaticSize = Enum.AutomaticSize.Y
+    Label.Parent = Results
+
+    return Label
+end
+
+--==========================================================
+-- FUNÇÃO: LIMPAR RESULTADOS
+--==========================================================
+
+local function limparResultados()
+    for _, item in ipairs(Results:GetChildren()) do
+        if item:IsA("TextLabel") then
+            item:Destroy()
         end
     end
-end)
-
---==================================================
--- FUNÇÕES AUXILIARES
---==================================================
-
-local function GetCharacter()
-    local Char = Player.Character
-    if not Char then return nil end
-    local Root = Char:FindFirstChild("HumanoidRootPart")
-    local Hum = Char:FindFirstChildOfClass("Humanoid")
-    if Root and Hum and Hum.Health > 0 then
-        return Char, Root, Hum
-    end
-    return nil
 end
 
-local function TeleportarPara(Posicao, TravarHum)
-    local Char, Root, Hum = GetCharacter()
-    if not Char or not Root then return false end
+--==========================================================
+-- FUNÇÃO: IDENTIFICAR OVO
+--==========================================================
 
-    if TravarHum and Hum then
-        Hum.WalkSpeed = 0
-        Hum.JumpPower = 0
-    end
+local function pareceSerOvo(objeto)
 
-    Root.AssemblyLinearVelocity = Vector3.zero
-    Root.AssemblyAngularVelocity = Vector3.zero
+    local nome = string.lower(objeto.Name)
 
-    pcall(function()
-        Char:PivotTo(CFrame.new(Posicao))
-    end)
-
-    Root.AssemblyLinearVelocity = Vector3.zero
-    Root.AssemblyAngularVelocity = Vector3.zero
-
-    if TravarHum and Hum then
-        task.wait(0.1)
-        Hum.WalkSpeed = 16
-        Hum.JumpPower = 50
-    end
-
-    return true
-end
-
-local function EncontrarMinhaPlot()
-    local Char, Root = GetCharacter()
-    if not Char or not Root then return nil end
-    local MinhaPos = Root.Position
-    local Melhor, MenorDist = nil, math.huge
-
-    for _, Obj in ipairs(workspace:GetDescendants()) do
-        if Obj:IsA("Model") or Obj:IsA("BasePart") then
-            local NomeLower = Obj.Name:lower()
-            for _, N in ipairs(NomesPlot) do
-                if string.find(NomeLower, N:lower()) then
-                    local Pos
-                    if Obj:IsA("Model") then
-                        local ok, pivot = pcall(function() return Obj:GetPivot() end)
-                        if ok then Pos = pivot.Position end
-                    else
-                        Pos = Obj.Position
-                    end
-                    if Pos then
-                        local Dist = (MinhaPos - Pos).Magnitude
-                        if Dist < MenorDist then
-                            MenorDist = Dist
-                            Melhor = Pos
-                        end
-                    end
-                end
-            end
-        end
-    end
-    return Melhor
-end
-
-local function EncontrarOvo()
-    local Char, Root = GetCharacter()
-    if not Char or not Root then return nil, nil end
-    local MinhaPos = Root.Position
-    local Melhor, MelhorPos, MenorDist = nil, nil, math.huge
-
-    for _, Obj in ipairs(workspace:GetDescendants()) do
-        if Obj:IsA("Model") or Obj:IsA("BasePart") then
-            local NomeLower = Obj.Name:lower()
-            for _, N in ipairs(NomesOvo) do
-                if string.find(NomeLower, N:lower()) then
-                    local Pos
-                    if Obj:IsA("Model") then
-                        local ok, pivot = pcall(function() return Obj:GetPivot() end)
-                        if ok then Pos = pivot.Position end
-                    else
-                        Pos = Obj.Position
-                    end
-                    if Pos then
-                        local Dist = (MinhaPos - Pos).Magnitude
-                        if Dist < MenorDist then
-                            MenorDist = Dist
-                            Melhor = Obj
-                            MelhorPos = Pos
-                        end
-                    end
-                end
-            end
-        end
-    end
-    return Melhor, MelhorPos
-end
-
-local function RoubarOvo(Objeto)
-    if not Objeto then return false end
-
-    local Prompt = Objeto:FindFirstChildOfClass("ProximityPrompt")
-    if not Prompt then Prompt = Objeto:FindFirstChildWhichIsA("ProximityPrompt", true) end
-    if Prompt then
-        pcall(function() fireproximityprompt(Prompt) end)
+    if string.find(nome, "egg", 1, true) then
         return true
     end
 
-    local Click = Objeto:FindFirstChildOfClass("ClickDetector")
-    if not Click then Click = Objeto:FindFirstChildWhichIsA("ClickDetector", true) end
-    if Click then
-        pcall(function() fireclickdetector(Click) end)
+    if CollectionService:HasTag(objeto, "Egg") then
         return true
     end
 
-    if Objeto:IsA("BasePart") and firetouchinterest then
-        local Char, Root = GetCharacter()
-        if Root then
-            pcall(function()
-                firetouchinterest(Root, Objeto, 0)
-                task.wait(0.05)
-                firetouchinterest(Root, Objeto, 1)
-            end)
-            return true
-        end
+    if CollectionService:HasTag(objeto, "egg") then
+        return true
     end
+
     return false
 end
 
---==================================================
--- JANELA RAYFIELD (TEMA ROXO)
---==================================================
+--==========================================================
+-- ANALISAR UM OVO
+--==========================================================
 
-local Window = Rayfield:CreateWindow({
-    Name = "Seraphim-Hub",
-    Icon = 0,
-    LoadingTitle = "Seraphim-Hub",
-    LoadingSubtitle = "by Seraphim",
-    Theme = "Amethyst",  -- tema roxo (mais próximo do Seraphim)
-    DisableRayfieldPrompts = false,
-    DisableBuildWarnings = false,
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "SeraphimHub",
-        FileName = "Config"
-    },
-    KeySystem = false
-})
+local function analisarOvo(ovo)
 
---==================================================
--- ABA PRINCIPAL: AUTO STEAL
---==================================================
+    adicionarResultado(
+        "🥚 OVO: " .. ovo.Name,
+        true
+    )
 
-local TabAuto = Window:CreateTab("Auto Steal", 4483362458)
+    adicionarResultado(
+        "Classe: " .. ovo.ClassName
+    )
 
-local Rodando = false
+    adicionarResultado(
+        "Caminho: " .. obterCaminho(ovo)
+    )
 
-local function AutoSteal()
-    while Rodando do
-        local Char = GetCharacter()
-        if not Char then
-            task.wait(0.5)
-            continue
+    -- ATRIBUTOS
+
+    local atributos = ovo:GetAttributes()
+
+    if next(atributos) then
+
+        adicionarResultado("  [ATRIBUTOS]", true)
+
+        for nome, valor in pairs(atributos) do
+            adicionarResultado(
+                "  • " ..
+                nome ..
+                " = " ..
+                tostring(valor)
+            )
         end
 
-        local Ovo, PosOvo = EncontrarOvo()
-        if not Ovo then
-            task.wait(0.5)
-            continue
-        end
+    else
 
-        TeleportarPara(PosOvo + Vector3.new(0, 3, 0), true)
-        task.wait(0.1)
+        adicionarResultado(
+            "  [ATRIBUTOS] Nenhum"
+        )
 
-        RoubarOvo(Ovo)
-        task.wait(0.2)
-
-        local PosPlot = EncontrarMinhaPlot()
-        if PosPlot then
-            TeleportarPara(PosPlot + Vector3.new(0, 5, 0), true)
-            task.wait(0.3)
-        end
-
-        task.wait(TempoEntreAcoes)
     end
+
+    -- TAGS
+
+    local tags = CollectionService:GetTags(ovo)
+
+    if #tags > 0 then
+
+        adicionarResultado(
+            "  [TAGS]",
+            true
+        )
+
+        for _, tag in ipairs(tags) do
+            adicionarResultado(
+                "  • " .. tag
+            )
+        end
+
+    else
+
+        adicionarResultado(
+            "  [TAGS] Nenhuma"
+        )
+
+    end
+
+    -- VALUES
+
+    local encontrouValue = false
+
+    for _, item in ipairs(ovo:GetDescendants()) do
+
+        if item:IsA("ValueBase") then
+
+            if not encontrouValue then
+                adicionarResultado(
+                    "  [VALUES]",
+                    true
+                )
+
+                encontrouValue = true
+            end
+
+            local valor = "?"
+
+            pcall(function()
+                valor = tostring(item.Value)
+            end)
+
+            adicionarResultado(
+                "  • " ..
+                obterCaminho(item) ..
+                " = " ..
+                valor
+            )
+        end
+    end
+
+    if not encontrouValue then
+        adicionarResultado(
+            "  [VALUES] Nenhum"
+        )
+    end
+
+    -- BASEPARTS
+
+    local encontrouPart = false
+
+    for _, item in ipairs(ovo:GetDescendants()) do
+
+        if item:IsA("BasePart") then
+
+            if not encontrouPart then
+
+                adicionarResultado(
+                    "  [BASEPARTS]",
+                    true
+                )
+
+                encontrouPart = true
+            end
+
+            adicionarResultado(
+                "  • " ..
+                obterCaminho(item) ..
+                " [" ..
+                item.ClassName ..
+                "]"
+            )
+
+            adicionarResultado(
+                "    Size: " ..
+                tostring(item.Size)
+            )
+
+            adicionarResultado(
+                "    Position: " ..
+                tostring(item.Position)
+            )
+
+            adicionarResultado(
+                "    CanCollide: " ..
+                tostring(item.CanCollide)
+            )
+
+            adicionarResultado(
+                "    CanTouch: " ..
+                tostring(item.CanTouch)
+            )
+        end
+    end
+
+    if not encontrouPart then
+        adicionarResultado(
+            "  [BASEPARTS] Nenhuma"
+        )
+    end
+
+    adicionarResultado(
+        "----------------------------------------"
+    )
 end
 
-TabAuto:CreateSection("Steal")
+--==========================================================
+-- ANALISAR WORKSPACE INTEIRA
+--==========================================================
 
-TabAuto:CreateToggle({
-    Name = "Auto Steal (Roubar + Voltar)",
-    CurrentValue = false,
-    Flag = "AutoStealToggle",
-    Callback = function(Value)
-        Rodando = Value
-        if Value then
-            task.spawn(AutoSteal)
-            Rayfield:Notify({
-                Title = "Seraphim-Hub",
-                Content = "Auto Steal ativado!",
-                Duration = 3,
-                Image = 4483362458
-            })
-        else
-            Rayfield:Notify({
-                Title = "Seraphim-Hub",
-                Content = "Auto Steal desativado.",
-                Duration = 3,
-                Image = 4483362458
-            })
+local function analisarWorkspace()
+
+    limparResultados()
+
+    local quantidade = 0
+
+    adicionarResultado(
+        "🔎 INICIANDO ANÁLISE...",
+        true
+    )
+
+    for _, objeto in ipairs(
+        Workspace:GetDescendants()
+    ) do
+
+        if pareceSerOvo(objeto) then
+
+            quantidade += 1
+
+            analisarOvo(objeto)
+
         end
     end
-})
 
-TabAuto:CreateButton({
-    Name = "Voltar para Plot",
-    Callback = function()
-        local Pos = EncontrarMinhaPlot()
-        if Pos then
-            TeleportarPara(Pos + Vector3.new(0, 5, 0), true)
-            Rayfield:Notify({
-                Title = "Seraphim-Hub",
-                Content = "Voltou para sua plot!",
-                Duration = 2,
-                Image = 4483362458
-            })
-        else
-            Rayfield:Notify({
-                Title = "Seraphim-Hub",
-                Content = "Plot não encontrada!",
-                Duration = 2,
-                Image = 4483362458
-            })
-        end
-    end
-})
+    adicionarResultado(
+        "✅ ANÁLISE CONCLUÍDA",
+        true
+    )
 
-TabAuto:CreateButton({
-    Name = "Teleportar para Próximo Ovo",
-    Callback = function()
-        local Ovo, PosOvo = EncontrarOvo()
-        if Ovo then
-            TeleportarPara(PosOvo + Vector3.new(0, 3, 0), true)
-            Rayfield:Notify({
-                Title = "Seraphim-Hub",
-                Content = "Teleportado para: " .. Ovo.Name,
-                Duration = 2,
-                Image = 4483362458
-            })
-        else
-            Rayfield:Notify({
-                Title = "Seraphim-Hub",
-                Content = "Nenhum ovo encontrado!",
-                Duration = 2,
-                Image = 4483362458
-            })
-        end
-    end
-})
+    adicionarResultado(
+        "Objetos identificados: " ..
+        tostring(quantidade)
+    )
 
---==================================================
--- ABA: PLAYER
---==================================================
+    task.wait()
 
-local TabPlayer = Window:CreateTab("Player", 4483362458)
+    Results.CanvasSize = UDim2.new(
+        0,
+        0,
+        0,
+        List.AbsoluteContentSize.Y + 10
+    )
+end
 
-TabPlayer:CreateSection("Movimento")
+--==========================================================
+-- BOTÃO ANALISAR
+--==========================================================
 
-TabPlayer:CreateSlider({
-    Name = "WalkSpeed",
-    Range = { 16, 200 },
-    Increment = 2,
-    Suffix = "studs",
-    CurrentValue = 16,
-    Flag = "WalkSpeedSlider",
-    Callback = function(Value)
-        local Char = Player.Character
-        if Char then
-            local Hum = Char:FindFirstChildOfClass("Humanoid")
-            if Hum then Hum.WalkSpeed = Value end
-        end
-    end
-})
+AnalyzeButton.MouseButton1Click:Connect(
+    analisarWorkspace
+)
 
-TabPlayer:CreateSlider({
-    Name = "JumpPower",
-    Range = { 50, 300 },
-    Increment = 5,
-    Suffix = "power",
-    CurrentValue = 50,
-    Flag = "JumpSlider",
-    Callback = function(Value)
-        local Char = Player.Character
-        if Char then
-            local Hum = Char:FindFirstChildOfClass("Humanoid")
-            if Hum then Hum.JumpPower = Value end
-        end
-    end
-})
+--==========================================================
+-- ATUALIZAR SCROLL AUTOMATICAMENTE
+--==========================================================
 
-TabPlayer:CreateSection("Vida")
+List:GetPropertyChangedSignal(
+    "AbsoluteContentSize"
+):Connect(function()
 
-TabPlayer:CreateToggle({
-    Name = "God Mode",
-    CurrentValue = true,
-    Flag = "GodToggle",
-    Callback = function(Value)
-        if Value then
-            AplicarGodMode(Player.Character)
-        else
-            local Char = Player.Character
-            if Char then
-                local FF = Char:FindFirstChild("SeraphimGodMode")
-                if FF then FF:Destroy() end
-            end
-        end
-    end
-})
+    Results.CanvasSize = UDim2.new(
+        0,
+        0,
+        0,
+        List.AbsoluteContentSize.Y + 10
+    )
 
---==================================================
--- ABA: INFO
---==================================================
+end)
 
-local TabInfo = Window:CreateTab("Info", 4483362458)
+print(
+    "[MEU HUB] Painel + analisador carregados."
+)
 
-TabInfo:CreateSection("Sobre")
 
-TabInfo:CreateParagraph({
-    Title = "Seraphim-Hub",
-    Content = "Hub no estilo Linno, tema roxo.\nAuto Steal + God Mode para Steal An Egg.\n\nFeito por Seraphim."
-})
 
-TabInfo:CreateButton({
-    Name = "Copiar Discord",
-    Callback = function()
-        setclipboard("seraphim")
-        Rayfield:Notify({
-            Title = "Seraphim-Hub",
-            Content = "Copiado!",
-            Duration = 2,
-            Image = 4483362458
-        })
-    end
-})
-
---==================================================
--- NOTIFY DE INÍCIO
---==================================================
-
-Rayfield:Notify({
-    Title = "Seraphim-Hub",
-    Content = "Hub carregado com sucesso!",
-    Duration = 5,
-    Image = 4483362458
-})
-
-print("🟣 Seraphim-Hub carregado!")
