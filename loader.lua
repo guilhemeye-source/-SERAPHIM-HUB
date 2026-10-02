@@ -1,42 +1,42 @@
---// Seraphim-Hub
---// Sistema de áreas + linha branca + teleporte direto + God Mode reforçado
+--// Seraphim-Hub - Estilo Linno (Steal An Egg)
+--// Tema roxo/violeta baseado na arte
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 local Player = Players.LocalPlayer
 
 --==================================================
--- CONFIGURAÇÃO
+-- CONFIG
 --==================================================
 
 local DistanciaDoChao = 3
-local TempoEntreAreas = 0.8
+local TempoEntreAcoes = 0.4
 local VidaTravada = 100000
 
-local Areas = {
-    {Nome = "SafeZone",      Display = "SafeZone"},
-    {Nome = "Forest",        Display = "Forest"},
-    {Nome = "Lake",          Display = "Lake"},
-    {Nome = "Desert",        Display = "Desert"},
-    {Nome = "Jungle",        Display = "Jungle"},
-    {Nome = "Snow",          Display = "Snow"},
-    {Nome = "Volcano",       Display = "Volcano"},
-    {Nome = "AbyssOcean",    Display = "Abyss Ocean"},
-    {Nome = "Prehistoric",   Display = "Prehistoric"},
-    {Nome = "Cosmic",        Display = "Cosmic"},
-    {Nome = "CherryBlossom", Display = "Cherry Blossom"},
-    {Nome = "TitanTemple",   Display = "Titan Temple"},
-    {Nome = "AngelsDemons",  Display = "Angels & Demons"}
-}
+local NomesOvo   = { "Egg", "Ovo", "Nest" }
+local NomesPlot  = { "Plot", "Base", "CollectZone", "Collect", "Garden", "Pen" }
+
+-- Cores tema Seraphim (roxo/violeta)
+local COR_FUNDO       = Color3.fromRGB(14, 10, 22)
+local COR_PAINEL      = Color3.fromRGB(22, 16, 38)
+local COR_SIDEBAR     = Color3.fromRGB(18, 12, 30)
+local COR_BOTAO       = Color3.fromRGB(35, 24, 60)
+local COR_BOTAO_HOVER = Color3.fromRGB(55, 35, 100)
+local COR_ATIVO       = Color3.fromRGB(130, 80, 255)
+local COR_ROXO_CLARO  = Color3.fromRGB(180, 130, 255)
+local COR_TEXTO       = Color3.fromRGB(240, 235, 255)
+local COR_TEXTO_FRACO = Color3.fromRGB(170, 160, 200)
+local COR_VERDE       = Color3.fromRGB(90, 220, 140)
+local COR_VERMELHO    = Color3.fromRGB(220, 70, 90)
 
 --==================================================
--- GOD MODE REFORÇADO
+-- GOD MODE
 --==================================================
 
 local function AplicarGodMode(Character)
     if not Character then return end
-
     local Antigo = Character:FindFirstChild("SeraphimGodMode")
     if Antigo then Antigo:Destroy() end
 
@@ -49,43 +49,25 @@ local function AplicarGodMode(Character)
     if Hum then
         Hum.MaxHealth = math.max(Hum.MaxHealth, VidaTravada)
         Hum.Health = Hum.MaxHealth
-
-        -- Reforça sempre que alguém tentar mexer
-        Hum.HealthChanged:Connect(function(NovaVida)
-            if NovaVida < Hum.MaxHealth then
-                Hum.Health = Hum.MaxHealth
-            end
-        end)
     end
 end
 
-if Player.Character then
-    AplicarGodMode(Player.Character)
-end
-
+if Player.Character then AplicarGodMode(Player.Character) end
 Player.CharacterAdded:Connect(function(Char)
     task.wait(0.2)
     AplicarGodMode(Char)
 end)
 
--- Loop principal de defesa (bem rápido)
 task.spawn(function()
     while true do
         task.wait(0.03)
-
         local Char = Player.Character
         if Char then
             local Hum = Char:FindFirstChildOfClass("Humanoid")
             if Hum then
-                if Hum.MaxHealth < VidaTravada then
-                    Hum.MaxHealth = VidaTravada
-                end
-                if Hum.Health < Hum.MaxHealth then
-                    Hum.Health = Hum.MaxHealth
-                end
+                if Hum.MaxHealth < VidaTravada then Hum.MaxHealth = VidaTravada end
+                if Hum.Health < Hum.MaxHealth then Hum.Health = Hum.MaxHealth end
             end
-
-            -- Se por acaso o ForceField sumir, recoloca
             if not Char:FindFirstChild("SeraphimGodMode") then
                 AplicarGodMode(Char)
             end
@@ -94,7 +76,7 @@ task.spawn(function()
 end)
 
 --==================================================
--- GUI
+-- GUI PRINCIPAL
 --==================================================
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -103,548 +85,581 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
+-- Container principal
 local Main = Instance.new("Frame")
 Main.Name = "Main"
-Main.Size = UDim2.fromOffset(245, 280)
-Main.Position = UDim2.new(0.5, -122, 0.5, -140)
-Main.BackgroundColor3 = Color3.fromRGB(15, 18, 25)
+Main.Size = UDim2.fromOffset(560, 340)
+Main.Position = UDim2.new(0.5, -280, 0.5, -170)
+Main.BackgroundColor3 = COR_FUNDO
 Main.BorderSizePixel = 0
 Main.Parent = ScreenGui
 
 local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 9)
+MainCorner.CornerRadius = UDim.new(0, 12)
 MainCorner.Parent = Main
 
 local MainStroke = Instance.new("UIStroke")
-MainStroke.Color = Color3.fromRGB(100, 200, 255)
-MainStroke.Thickness = 2
+MainStroke.Color = COR_ATIVO
+MainStroke.Thickness = 1.5
+MainStroke.Transparency = 0.3
 MainStroke.Parent = Main
 
-local Top = Instance.new("Frame")
-Top.Size = UDim2.new(1, 0, 0, 34)
-Top.BackgroundColor3 = Color3.fromRGB(10, 13, 20)
-Top.BorderSizePixel = 0
-Top.Parent = Main
+-- Glow externo (2 strokes pra dar brilho)
+local OuterGlow = Instance.new("UIStroke")
+OuterGlow.Color = COR_ATIVO
+OuterGlow.Thickness = 6
+OuterGlow.Transparency = 0.85
+OuterGlow.Parent = Main
 
-local TopCorner = Instance.new("UICorner")
-TopCorner.CornerRadius = UDim.new(0, 9)
-TopCorner.Parent = Top
+--==================================================
+-- SIDEBAR (esquerda)
+--==================================================
 
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -45, 1, 0)
-Title.Position = UDim2.fromOffset(9, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "Seraphim-Hub"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 14
-Title.Font = Enum.Font.GothamBold
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Parent = Top
+local Sidebar = Instance.new("Frame")
+Sidebar.Name = "Sidebar"
+Sidebar.Size = UDim2.new(0, 150, 1, 0)
+Sidebar.BackgroundColor3 = COR_SIDEBAR
+Sidebar.BorderSizePixel = 0
+Sidebar.Parent = Main
 
-local CloseButton = Instance.new("TextButton")
-CloseButton.Size = UDim2.fromOffset(24, 24)
-CloseButton.Position = UDim2.new(1, -29, 0, 5)
-CloseButton.BackgroundColor3 = Color3.fromRGB(30, 34, 43)
-CloseButton.BorderSizePixel = 0
-CloseButton.Text = "X"
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.TextSize = 11
-CloseButton.Font = Enum.Font.GothamBold
-CloseButton.Parent = Top
+local SidebarCorner = Instance.new("UICorner")
+SidebarCorner.CornerRadius = UDim.new(0, 12)
+SidebarCorner.Parent = Sidebar
 
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 6)
-CloseCorner.Parent = CloseButton
+-- Cobre o canto direito arredondado da sidebar
+local SidebarFix = Instance.new("Frame")
+SidebarFix.Size = UDim2.new(0, 12, 1, 0)
+SidebarFix.Position = UDim2.new(1, -12, 0, 0)
+SidebarFix.BackgroundColor3 = COR_SIDEBAR
+SidebarFix.BorderSizePixel = 0
+SidebarFix.Parent = Sidebar
 
-local Status = Instance.new("TextLabel")
-Status.Size = UDim2.new(1, -16, 0, 25)
-Status.Position = UDim2.fromOffset(8, 40)
-Status.BackgroundTransparency = 1
-Status.Text = "Escolha uma área"
-Status.TextColor3 = Color3.fromRGB(180, 190, 200)
-Status.TextSize = 11
-Status.Font = Enum.Font.Gotham
-Status.Parent = Main
+-- Logo "SERAPHIM HUB"
+local Logo = Instance.new("TextLabel")
+Logo.Size = UDim2.new(1, -20, 0, 60)
+Logo.Position = UDim2.fromOffset(10, 12)
+Logo.BackgroundTransparency = 1
+Logo.Text = "SERAPHIM\nHUB"
+Logo.TextColor3 = COR_ROXO_CLARO
+Logo.TextSize = 22
+Logo.Font = Enum.Font.GothamBlack
+Logo.TextXAlignment = Enum.TextXAlignment.Left
+Logo.TextYAlignment = Enum.TextYAlignment.Top
+Logo.Parent = Sidebar
 
-local ScrollingFrame = Instance.new("ScrollingFrame")
-ScrollingFrame.Name = "ListaAreas"
-ScrollingFrame.Size = UDim2.new(1, -16, 0, 150)
-ScrollingFrame.Position = UDim2.fromOffset(8, 67)
-ScrollingFrame.BackgroundColor3 = Color3.fromRGB(9, 11, 16)
-ScrollingFrame.BorderSizePixel = 0
-ScrollingFrame.ScrollBarThickness = 5
-ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-ScrollingFrame.Parent = Main
+local LogoGlow = Instance.new("UIStroke")
+LogoGlow.Color = COR_ATIVO
+LogoGlow.Thickness = 1
+LogoGlow.Transparency = 0.6
+LogoGlow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+LogoGlow.Parent = Logo
 
-local ScrollCorner = Instance.new("UICorner")
-ScrollCorner.CornerRadius = UDim.new(0, 7)
-ScrollCorner.Parent = ScrollingFrame
+-- Linha decorativa abaixo do logo
+local LogoLine = Instance.new("Frame")
+LogoLine.Size = UDim2.new(0, 60, 0, 2)
+LogoLine.Position = UDim2.fromOffset(10, 76)
+LogoLine.BackgroundColor3 = COR_ATIVO
+LogoLine.BorderSizePixel = 0
+LogoLine.Parent = Sidebar
 
-local Layout = Instance.new("UIListLayout")
-Layout.Padding = UDim.new(0, 4)
-Layout.SortOrder = Enum.SortOrder.LayoutOrder
-Layout.Parent = ScrollingFrame
+--==================================================
+-- BOTÕES DA SIDEBAR (abas)
+--==================================================
 
-Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    ScrollingFrame.CanvasSize = UDim2.new(
-        0, 0, 0, Layout.AbsoluteContentSize.Y + 8
-    )
-end)
+local AbasContainer = Instance.new("Frame")
+AbasContainer.Size = UDim2.new(1, -20, 0, 200)
+AbasContainer.Position = UDim2.fromOffset(10, 92)
+AbasContainer.BackgroundTransparency = 1
+AbasContainer.Parent = Sidebar
 
-local AreaSelecionada = nil
+local AbasLayout = Instance.new("UIListLayout")
+AbasLayout.Padding = UDim.new(0, 6)
+AbasLayout.SortOrder = Enum.SortOrder.LayoutOrder
+AbasLayout.Parent = AbasContainer
 
-local function AtualizarSelecao()
-    for _, Button in ipairs(ScrollingFrame:GetChildren()) do
-        if Button:IsA("TextButton") then
-            if Button:GetAttribute("Area") == AreaSelecionada then
-                Button.BackgroundColor3 = Color3.fromRGB(0, 90, 150)
-            else
-                Button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+local AbaAtual = nil
+
+local function CriarAba(Nome, Ordem, Callback)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, 0, 0, 32)
+    Btn.BackgroundColor3 = COR_BOTAO
+    Btn.BorderSizePixel = 0
+    Btn.Text = "  " .. Nome
+    Btn.TextColor3 = COR_TEXTO
+    Btn.TextSize = 12
+    Btn.Font = Enum.Font.GothamBold
+    Btn.TextXAlignment = Enum.TextXAlignment.Left
+    Btn.LayoutOrder = Ordem
+    Btn.AutoButtonColor = false
+    Btn.Parent = AbasContainer
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = Btn
+
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Color = COR_ATIVO
+    Stroke.Thickness = 1
+    Stroke.Transparency = 1
+    Stroke.Parent = Btn
+
+    Btn.MouseEnter:Connect(function()
+        if AbaAtual ~= Nome then
+            TweenService:Create(Btn, TweenInfo.new(0.15), {
+                BackgroundColor3 = COR_BOTAO_HOVER
+            }):Play()
+        end
+    end)
+
+    Btn.MouseLeave:Connect(function()
+        if AbaAtual ~= Nome then
+            TweenService:Create(Btn, TweenInfo.new(0.15), {
+                BackgroundColor3 = COR_BOTAO
+            }):Play()
+        end
+    end)
+
+    Btn.MouseButton1Click:Connect(function()
+        AbaAtual = Nome
+        -- Atualiza visual
+        for _, Outro in ipairs(AbasContainer:GetChildren()) do
+            if Outro:IsA("TextButton") then
+                if Outro == Btn then
+                    TweenService:Create(Outro, TweenInfo.new(0.15), {
+                        BackgroundColor3 = COR_ATIVO
+                    }):Play()
+                    TweenService:Create(Outro:FindFirstChildOfClass("UIStroke"), TweenInfo.new(0.15), {
+                        Transparency = 0
+                    }):Play()
+                else
+                    TweenService:Create(Outro, TweenInfo.new(0.15), {
+                        BackgroundColor3 = COR_BOTAO
+                    }):Play()
+                    TweenService:Create(Outro:FindFirstChildOfClass("UIStroke"), TweenInfo.new(0.15), {
+                        Transparency = 1
+                    }):Play()
+                end
             end
         end
-    end
-end
-
-for Index, Area in ipairs(Areas) do
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(1, -8, 0, 30)
-    Button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    Button.BorderSizePixel = 0
-    Button.Text = Area.Display
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button.TextSize = 12
-    Button.Font = Enum.Font.GothamBold
-    Button.LayoutOrder = Index
-    Button:SetAttribute("Area", Area.Nome)
-    Button.Parent = ScrollingFrame
-
-    local ButtonCorner = Instance.new("UICorner")
-    ButtonCorner.CornerRadius = UDim.new(0, 6)
-    ButtonCorner.Parent = Button
-
-    Button.MouseButton1Click:Connect(function()
-        AreaSelecionada = Area.Nome
-        Status.Text = "Destino: " .. Area.Display
-        AtualizarSelecao()
+        if Callback then Callback() end
     end)
+
+    return Btn
 end
 
-local StopButton = Instance.new("TextButton")
-StopButton.Size = UDim2.new(1, -16, 0, 38)
-StopButton.Position = UDim2.fromOffset(8, 224)
-StopButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-StopButton.BorderSizePixel = 0
-StopButton.Text = "⛔ Stop Bots"
-StopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-StopButton.TextSize = 13
-StopButton.Font = Enum.Font.GothamBold
-StopButton.Parent = Main
-
-local StopCorner = Instance.new("UICorner")
-StopCorner.CornerRadius = UDim.new(0, 7)
-StopCorner.Parent = StopButton
-
 --==================================================
--- ENCONTRAR ÁREA
+-- ÁREA DE CONTEÚDO (direita)
 --==================================================
 
-local function EncontrarContainer()
-    return workspace:FindFirstChild("Zones") or workspace
+local Content = Instance.new("Frame")
+Content.Name = "Content"
+Content.Size = UDim2.new(1, -150, 1, 0)
+Content.Position = UDim2.new(0, 150, 0, 0)
+Content.BackgroundColor3 = COR_PAINEL
+Content.BorderSizePixel = 0
+Content.Parent = Main
+
+local ContentCorner = Instance.new("UICorner")
+ContentCorner.CornerRadius = UDim.new(0, 12)
+ContentCorner.Parent = Content
+
+-- Cobre a borda esquerda arredondada
+local ContentFix = Instance.new("Frame")
+ContentFix.Size = UDim2.new(0, 12, 1, 0)
+ContentFix.BackgroundColor3 = COR_PAINEL
+ContentFix.BorderSizePixel = 0
+ContentFix.Parent = Content
+
+-- Título da página
+local TituloPagina = Instance.new("TextLabel")
+TituloPagina.Size = UDim2.new(1, -30, 0, 30)
+TituloPagina.Position = UDim2.fromOffset(20, 15)
+TituloPagina.BackgroundTransparency = 1
+TituloPagina.Text = "Auto Steal"
+TituloPagina.TextColor3 = COR_ROXO_CLARO
+TituloPagina.TextSize = 16
+TituloPagina.Font = Enum.Font.GothamBlack
+TituloPagina.TextXAlignment = Enum.TextXAlignment.Left
+TituloPagina.Parent = Content
+
+-- Linha decorativa
+local TituloLinha = Instance.new("Frame")
+TituloLinha.Size = UDim2.new(1, -40, 0, 1)
+TituloLinha.Position = UDim2.fromOffset(20, 48)
+TituloLinha.BackgroundColor3 = COR_ATIVO
+TituloLinha.BorderSizePixel = 0
+TituloLinha.BackgroundTransparency = 0.7
+TituloLinha.Parent = Content
+
+--==================================================
+-- ÁREA DINÂMICA (onde as páginas aparecem)
+--==================================================
+
+local PaginaContainer = Instance.new("Frame")
+PaginaContainer.Name = "Paginas"
+PaginaContainer.Size = UDim2.new(1, -40, 1, -70)
+PaginaContainer.Position = UDim2.fromOffset(20, 60)
+PaginaContainer.BackgroundTransparency = 1
+PaginaContainer.Parent = Content
+
+local function LimparPagina()
+    for _, Filho in ipairs(PaginaContainer:GetChildren()) do
+        Filho:Destroy()
+    end
 end
 
-local function EncontrarArea(Nome)
-    local Container = EncontrarContainer()
-    local Area = Container:FindFirstChild(Nome)
-    if Area then return Area end
+--==================================================
+-- FUNÇÕES DO JOGO
+--==================================================
 
-    for _, Obj in ipairs(Container:GetDescendants()) do
-        if Obj.Name == Nome
-            and (Obj:IsA("Model") or Obj:IsA("Folder")) then
-            return Obj
-        end
+local function GetCharacter()
+    local Char = Player.Character
+    if not Char then return nil end
+    local Root = Char:FindFirstChild("HumanoidRootPart")
+    local Hum = Char:FindFirstChildOfClass("Humanoid")
+    if Root and Hum and Hum.Health > 0 then
+        return Char, Root, Hum
     end
     return nil
 end
 
-local function ObterCFrameDaArea(Area)
-    if not Area then return nil end
+local function TeleportarPara(Posicao, TravarHum)
+    local Char, Root, Hum = GetCharacter()
+    if not Char or not Root then return false end
 
-    if Area:IsA("Model") then
-        local Ok, Pivot = pcall(function()
-            return Area:GetPivot()
-        end)
-        if Ok then return Pivot end
+    if TravarHum and Hum then
+        Hum.WalkSpeed = 0
+        Hum.JumpPower = 0
     end
 
-    if Area:IsA("BasePart") then
-        return Area.CFrame
+    Root.AssemblyLinearVelocity = Vector3.zero
+    Root.AssemblyAngularVelocity = Vector3.zero
+
+    pcall(function()
+        Char:PivotTo(CFrame.new(Posicao))
+    end)
+
+    Root.AssemblyLinearVelocity = Vector3.zero
+    Root.AssemblyAngularVelocity = Vector3.zero
+
+    if TravarHum and Hum then
+        task.wait(0.1)
+        Hum.WalkSpeed = 16
+        Hum.JumpPower = 50
     end
 
-    local Part = Area:FindFirstChildWhichIsA("BasePart", true)
-    if Part then return Part.CFrame end
-
-    return nil
+    return true
 end
 
-local function PegarPosicaoSegura(Area)
-    local BaseCFrame = ObterCFrameDaArea(Area)
-    if not BaseCFrame then return nil end
+local function EncontrarMinhaPlot()
+    local Char, Root = GetCharacter()
+    if not Char or not Root then return nil end
+    local MinhaPos = Root.Position
+    local Melhor, MenorDist = nil, math.huge
 
-    local Params = RaycastParams.new()
-    Params.FilterType = Enum.RaycastFilterType.Exclude
-    Params.FilterDescendantsInstances = {
-        Player.Character,
-        Area
-    }
-
-    local Posicao = BaseCFrame.Position
-    local Origem = Posicao + Vector3.new(0, 100, 0)
-
-    local Resultado = workspace:Raycast(
-        Origem,
-        Vector3.new(0, -200, 0),
-        Params
-    )
-
-    if Resultado then
-        return CFrame.new(
-            Posicao.X,
-            Resultado.Position.Y + DistanciaDoChao,
-            Posicao.Z
-        )
-    end
-
-    return CFrame.new(
-        Posicao.X,
-        Posicao.Y + DistanciaDoChao,
-        Posicao.Z
-    )
-end
-
---==================================================
--- DETECTAR ÁREA ATUAL
---==================================================
-
-local function DetectarAreaAtual()
-    local Character = Player.Character
-    if not Character then return nil end
-
-    local Root = Character:FindFirstChild("HumanoidRootPart")
-    if not Root then return nil end
-
-    local Melhor = nil
-    local MenorDistancia = math.huge
-
-    for _, Info in ipairs(Areas) do
-        local Area = EncontrarArea(Info.Nome)
-        if Area then
-            local Posicao = PegarPosicaoSegura(Area)
-            if Posicao then
-                local Distancia =
-                    (Root.Position - Posicao.Position).Magnitude
-                if Distancia < MenorDistancia then
-                    MenorDistancia = Distancia
-                    Melhor = Info.Nome
+    for _, Obj in ipairs(workspace:GetDescendants()) do
+        if Obj:IsA("Model") or Obj:IsA("BasePart") then
+            local NomeLower = Obj.Name:lower()
+            for _, N in ipairs(NomesPlot) do
+                if string.find(NomeLower, N:lower()) then
+                    local Pos
+                    if Obj:IsA("Model") then
+                        local ok, pivot = pcall(function() return Obj:GetPivot() end)
+                        if ok then Pos = pivot.Position end
+                    else
+                        Pos = Obj.Position
+                    end
+                    if Pos then
+                        local Dist = (MinhaPos - Pos).Magnitude
+                        if Dist < MenorDist then
+                            MenorDist = Dist
+                            Melhor = Pos
+                        end
+                    end
                 end
             end
         end
     end
-
     return Melhor
 end
 
---==================================================
--- CRIAR ROTA
---==================================================
+local function EncontrarOvo()
+    local Char, Root = GetCharacter()
+    if not Char or not Root then return nil, nil end
+    local MinhaPos = Root.Position
+    local Melhor, MelhorPos, MenorDist = nil, nil, math.huge
 
-local function CriarRota(Destino)
-    local Atual = DetectarAreaAtual()
-
-    local IndiceAtual = nil
-    local IndiceDestino = nil
-
-    for I, Area in ipairs(Areas) do
-        if Area.Nome == Atual then IndiceAtual = I end
-        if Area.Nome == Destino then IndiceDestino = I end
-    end
-
-    if not IndiceDestino then return {} end
-
-    if IndiceAtual == IndiceDestino then
-        IndiceAtual += 1
-        if IndiceAtual > #Areas then IndiceAtual = 1 end
-    end
-
-    local Rota = {}
-
-    if Destino == "AngelsDemons" then
-        if IndiceAtual and IndiceAtual < IndiceDestino then
-            for I = IndiceAtual + 1, IndiceDestino do
-                table.insert(Rota, Areas[I])
-            end
-        else
-            table.insert(Rota, Areas[IndiceDestino])
-        end
-        return Rota
-    end
-
-    if IndiceAtual and IndiceAtual < IndiceDestino then
-        for I = IndiceAtual + 1, IndiceDestino do
-            table.insert(Rota, Areas[I])
-        end
-    elseif IndiceAtual and IndiceAtual > IndiceDestino then
-        for I = IndiceAtual - 1, IndiceDestino, -1 do
-            table.insert(Rota, Areas[I])
-        end
-    else
-        for I = 1, IndiceDestino do
-            table.insert(Rota, Areas[I])
-        end
-    end
-
-    return Rota
-end
-
---==================================================
--- LINHA BRANCA
---==================================================
-
-local PastaLinha = Instance.new("Folder")
-PastaLinha.Name = "SeraphimLinhaDestino"
-PastaLinha.Parent = workspace
-
-local LinhaAtual = nil
-
-local function RemoverLinha()
-    if LinhaAtual then
-        LinhaAtual:Destroy()
-        LinhaAtual = nil
-    end
-end
-
-local function MostrarLinha(AreaInfo)
-    RemoverLinha()
-
-    local Character = Player.Character
-    if not Character then return end
-
-    local Root = Character:FindFirstChild("HumanoidRootPart")
-    if not Root then return end
-
-    local Area = EncontrarArea(AreaInfo.Nome)
-    if not Area then return end
-
-    local Posicao = PegarPosicaoSegura(Area)
-    if not Posicao then return end
-
-    local Folder = Instance.new("Folder")
-    Folder.Name = "Linha"
-
-    local Inicio = Instance.new("Attachment")
-    Inicio.Name = "Inicio"
-
-    local Fim = Instance.new("Attachment")
-    Fim.Name = "Destino"
-    Fim.WorldPosition = Posicao.Position
-
-    local Beam = Instance.new("Beam")
-    Beam.Name = "LinhaBranca"
-    Beam.Attachment0 = Inicio
-    Beam.Attachment1 = Fim
-    Beam.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
-    Beam.Width0 = 0.08
-    Beam.Width1 = 0.08
-    Beam.FaceCamera = true
-    Beam.LightEmission = 1
-    Beam.Parent = Folder
-
-    Inicio.Parent = Folder
-    Fim.Parent = Folder
-
-    Folder.Parent = PastaLinha
-
-    LinhaAtual = Folder
-end
-
---==================================================
--- ESPERAR PERSONAGEM VIVO
---==================================================
-
-local function EsperarPersonagemVivo(Timeout)
-    Timeout = Timeout or 5
-
-    local Inicio = tick()
-
-    while tick() - Inicio < Timeout do
-        local Char = Player.Character
-        if Char and Char.Parent then
-            local Hum = Char:FindFirstChildOfClass("Humanoid")
-            local Root = Char:FindFirstChild("HumanoidRootPart")
-            if Hum and Root and Hum.Health > 0 then
-                return Char, Hum, Root
+    for _, Obj in ipairs(workspace:GetDescendants()) do
+        if Obj:IsA("Model") or Obj:IsA("BasePart") then
+            local NomeLower = Obj.Name:lower()
+            for _, N in ipairs(NomesOvo) do
+                if string.find(NomeLower, N:lower()) then
+                    local Pos
+                    if Obj:IsA("Model") then
+                        local ok, pivot = pcall(function() return Obj:GetPivot() end)
+                        if ok then Pos = pivot.Position end
+                    else
+                        Pos = Obj.Position
+                    end
+                    if Pos then
+                        local Dist = (MinhaPos - Pos).Magnitude
+                        if Dist < MenorDist then
+                            MenorDist = Dist
+                            Melhor = Obj
+                            MelhorPos = Pos
+                        end
+                    end
+                end
             end
         end
-        task.wait(0.1)
     end
-
-    return nil
+    return Melhor, MelhorPos
 end
 
---==================================================
--- TELEPORTE COM RETRY
---==================================================
-
-local function TeleportarParaArea(AreaInfo)
-    local Area = EncontrarArea(AreaInfo.Nome)
-    if not Area then
-        warn("Seraphim-Hub: área não encontrada:", AreaInfo.Nome)
-        return false
-    end
-
-    local Posicao = PegarPosicaoSegura(Area)
-    if not Posicao then return false end
-
-    for Tentativa = 1, 3 do
-        local Char, Hum, Root = EsperarPersonagemVivo(3)
-
-        if not Char then
-            task.wait(0.3)
-            continue
-        end
-
-        local CharRef = Char
-
-        -- Trava movimento
-        Hum.WalkSpeed = 0
-        Hum.JumpPower = 0
-        Hum.JumpHeight = 0
-
-        Root.AssemblyLinearVelocity = Vector3.zero
-        Root.AssemblyAngularVelocity = Vector3.zero
-
-        -- Desativa colisão
-        local PartesSalvas = {}
-        for _, Part in ipairs(Char:GetDescendants()) do
-            if Part:IsA("BasePart") and Part.CanCollide then
-                PartesSalvas[Part] = true
-                Part.CanCollide = false
-            end
-        end
-
-        -- Pivot no model inteiro
-        pcall(function()
-            Char:PivotTo(Posicao)
-        end)
-
-        Root.AssemblyLinearVelocity = Vector3.zero
-        Root.AssemblyAngularVelocity = Vector3.zero
-
-        task.wait(0.12)
-
-        -- Personagem morreu durante o teleporte?
-        if Player.Character ~= CharRef then
-            -- Espera respawnar e tenta de novo
-            task.wait(0.5)
-            continue
-        end
-
-        -- Restaura colisão
-        for Part in pairs(PartesSalvas) do
-            if Part.Parent then
-                Part.CanCollide = true
-            end
-        end
-
-        -- Libera movimento
-        if Hum and Hum.Parent then
-            Hum.WalkSpeed = 16
-            Hum.JumpPower = 50
-            Hum.JumpHeight = 7.2
-        end
-
+local function RoubarOvo(Objeto)
+    if not Objeto then return false end
+    local Prompt = Objeto:FindFirstChildOfClass("ProximityPrompt")
+    if not Prompt then Prompt = Objeto:FindFirstChildWhichIsA("ProximityPrompt", true) end
+    if Prompt then
+        pcall(function() fireproximityprompt(Prompt) end)
         return true
     end
-
+    local Click = Objeto:FindFirstChildOfClass("ClickDetector")
+    if not Click then Click = Objeto:FindFirstChildWhichIsA("ClickDetector", true) end
+    if Click then
+        pcall(function() fireclickdetector(Click) end)
+        return true
+    end
+    if Objeto:IsA("BasePart") and firetouchinterest then
+        local Char, Root = GetCharacter()
+        if Root then
+            pcall(function()
+                firetouchinterest(Root, Objeto, 0)
+                task.wait(0.05)
+                firetouchinterest(Root, Objeto, 1)
+            end)
+            return true
+        end
+    end
     return false
 end
 
 --==================================================
--- EXECUÇÃO
+-- UI HELPERS
 --==================================================
 
-local Executando = false
+local function CriarBotaoAcao(Texto, PosY, CorFundo, Callback)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, 0, 0, 40)
+    Btn.Position = UDim2.fromOffset(0, PosY)
+    Btn.BackgroundColor3 = CorFundo or COR_BOTAO
+    Btn.BorderSizePixel = 0
+    Btn.Text = Texto
+    Btn.TextColor3 = COR_TEXTO
+    Btn.TextSize = 13
+    Btn.Font = Enum.Font.GothamBold
+    Btn.AutoButtonColor = false
+    Btn.Parent = PaginaContainer
 
-local function Executar()
-    if Executando then
-        Executando = false
-        RemoverLinha()
-        Status.Text = "Parado"
-        StopButton.Text = "⛔ Stop Bots"
-        return
-    end
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = Btn
 
-    if not AreaSelecionada then
-        Status.Text = "Escolha uma área!"
-        return
-    end
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Color = COR_ATIVO
+    Stroke.Thickness = 1
+    Stroke.Transparency = 0.5
+    Stroke.Parent = Btn
 
-    local Rota = CriarRota(AreaSelecionada)
-    if #Rota == 0 then
-        Status.Text = "Rota vazia!"
-        return
-    end
+    Btn.MouseEnter:Connect(function()
+        TweenService:Create(Btn, TweenInfo.new(0.15), {
+            BackgroundColor3 = COR_BOTAO_HOVER
+        }):Play()
+    end)
 
-    Executando = true
-    StopButton.Text = "⛔ Parar"
+    Btn.MouseLeave:Connect(function()
+        TweenService:Create(Btn, TweenInfo.new(0.15), {
+            BackgroundColor3 = CorFundo or COR_BOTAO
+        }):Play()
+    end)
 
-    for I, Info in ipairs(Rota) do
-        if not Executando then break end
+    Btn.MouseButton1Click:Connect(Callback)
+    return Btn
+end
 
-        -- Garante personagem vivo antes de seguir
-        local Char = EsperarPersonagemVivo(5)
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(1, 0, 0, 25)
+StatusLabel.Position = UDim2.fromOffset(0, 250)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "Pronto."
+StatusLabel.TextColor3 = COR_TEXTO_FRACO
+StatusLabel.TextSize = 11
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+StatusLabel.Parent = PaginaContainer
+
+--==================================================
+-- LOOP AUTO STEAL
+--==================================================
+
+local Rodando = false
+
+local function AutoSteal()
+    while Rodando do
+        local Char = GetCharacter()
         if not Char then
-            Status.Text = "Sem personagem..."
+            StatusLabel.Text = "Sem personagem..."
             task.wait(0.5)
             continue
         end
 
-        Status.Text = Info.Display .. "  " .. I .. "/" .. #Rota
+        local Ovo, PosOvo = EncontrarOvo()
+        if not Ovo then
+            StatusLabel.Text = "Procurando ovos..."
+            task.wait(0.5)
+            continue
+        end
 
-        MostrarLinha(Info)
-        task.wait(0.35)
+        StatusLabel.Text = "🎯 Roubando: " .. Ovo.Name
 
-        if not Executando then break end
+        TeleportarPara(PosOvo + Vector3.new(0, 3, 0), true)
+        task.wait(0.1)
 
-        TeleportarParaArea(Info)
+        RoubarOvo(Ovo)
+        task.wait(0.2)
 
-        task.wait(TempoEntreAreas)
+        local PosPlot = EncontrarMinhaPlot()
+        if PosPlot then
+            StatusLabel.Text = "🏠 Voltando pra plot..."
+            TeleportarPara(PosPlot + Vector3.new(0, 5, 0), true)
+            task.wait(0.3)
+        else
+            StatusLabel.Text = "⚠️ Plot não encontrada"
+        end
+
+        task.wait(TempoEntreAcoes)
     end
-
-    RemoverLinha()
-
-    if Executando then
-        Status.Text = "Destino alcançado!"
-    else
-        Status.Text = "Parado"
-    end
-
-    Executando = false
-    StopButton.Text = "⛔ Stop Bots"
 end
 
-StopButton.MouseButton1Click:Connect(function()
-    Executar()
+--==================================================
+-- PÁGINAS
+--==================================================
+
+local BtnToggleRef = nil
+
+local function PaginaAutoSteal()
+    LimparPagina()
+    TituloPagina.Text = "Auto Steal"
+
+    BtnToggleRef = CriarBotaoAcao("▶  Iniciar Auto Steal", 0, COR_ATIVO, function()
+        Rodando = not Rodando
+        if Rodando then
+            BtnToggleRef.Text = "⏹  Parar Auto Steal"
+            TweenService:Create(BtnToggleRef, TweenInfo.new(0.15), {
+                BackgroundColor3 = COR_VERMELHO
+            }):Play()
+            task.spawn(AutoSteal)
+        else
+            BtnToggleRef.Text = "▶  Iniciar Auto Steal"
+            TweenService:Create(BtnToggleRef, TweenInfo.new(0.15), {
+                BackgroundColor3 = COR_ATIVO
+            }):Play()
+            StatusLabel.Text = "Parado."
+        end
+    end)
+
+    CriarBotaoAcao("🏠  Voltar para Plot", 50, COR_BOTAO, function()
+        local Pos = EncontrarMinhaPlot()
+        if Pos then
+            TeleportarPara(Pos + Vector3.new(0, 5, 0), true)
+            StatusLabel.Text = "🏠 Voltou pra plot!"
+        else
+            StatusLabel.Text = "⚠️ Plot não encontrada"
+        end
+    end)
+
+    CriarBotaoAcao("🔄  Resetar Status", 100, COR_BOTAO, function()
+        StatusLabel.Text = "Pronto."
+    end)
+end
+
+local function PaginaInfo()
+    LimparPagina()
+    TituloPagina.Text = "Informações"
+
+    local Info = Instance.new("TextLabel")
+    Info.Size = UDim2.new(1, 0, 0, 200)
+    Info.BackgroundTransparency = 1
+    Info.Text = "SERAPHIM-HUB\n\n"
+        .. "✔ God Mode sempre ativo\n"
+        .. "✔ Auto Steal de ovos\n"
+        .. "✔ Retorno automático pra plot\n"
+        .. "✔ Tema roxo Seraphim\n\n"
+        .. "Versão: 1.0\n"
+        .. "Estilo: Linno"
+    Info.TextColor3 = COR_TEXTO
+    Info.TextSize = 12
+    Info.Font = Enum.Font.Gotham
+    Info.TextXAlignment = Enum.TextXAlignment.Left
+    Info.TextYAlignment = Enum.TextYAlignment.Top
+    Info.RichText = true
+    Info.Parent = PaginaContainer
+end
+
+--==================================================
+-- CRIA AS ABAS
+--==================================================
+
+CriarAba("Auto Steal", 1, PaginaAutoSteal)
+CriarAba("Info", 2, PaginaInfo)
+
+-- Abre primeira aba
+task.defer(function()
+    AbaAtual = "Auto Steal"
+    PaginaAutoSteal()
+    -- Marca visual
+    for _, Outro in ipairs(AbasContainer:GetChildren()) do
+        if Outro:IsA("TextButton") and Outro.Text:find("Auto Steal") then
+            Outro.BackgroundColor3 = COR_ATIVO
+            local s = Outro:FindFirstChildOfClass("UIStroke")
+            if s then s.Transparency = 0 end
+        end
+    end
 end)
 
 --==================================================
--- FECHAR
+-- BOTÃO FECHAR
 --==================================================
 
-CloseButton.MouseButton1Click:Connect(function()
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.fromOffset(28, 28)
+CloseBtn.Position = UDim2.new(1, -38, 0, 10)
+CloseBtn.BackgroundColor3 = COR_BOTAO
+CloseBtn.BorderSizePixel = 0
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = COR_TEXTO
+CloseBtn.TextSize = 14
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.AutoButtonColor = false
+CloseBtn.Parent = Content
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseBtn
+
+CloseBtn.MouseEnter:Connect(function()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.15), {
+        BackgroundColor3 = COR_VERMELHO
+    }):Play()
+end)
+CloseBtn.MouseLeave:Connect(function()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.15), {
+        BackgroundColor3 = COR_BOTAO
+    }):Play()
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
     Main.Visible = not Main.Visible
-    if not Main.Visible then
-        RemoverLinha()
-    end
 end)
 
 --==================================================
@@ -652,10 +667,9 @@ end)
 --==================================================
 
 local Dragging = false
-local DragStart = Vector2.zero
-local InicioPos = UDim2.new()
+local DragStart, InicioPos
 
-Top.InputBegan:Connect(function(Input)
+Sidebar.InputBegan:Connect(function(Input)
     if Input.UserInputType == Enum.UserInputType.MouseButton1
         or Input.UserInputType == Enum.UserInputType.Touch then
         Dragging = true
@@ -672,7 +686,6 @@ end)
 
 UserInputService.InputChanged:Connect(function(Input)
     if not Dragging then return end
-
     if Input.UserInputType == Enum.UserInputType.MouseMovement
         or Input.UserInputType == Enum.UserInputType.Touch then
         local Delta = Input.Position - DragStart
@@ -687,4 +700,4 @@ end)
 -- INÍCIO
 --==================================================
 
-print("Seraphim-Hub carregado! (God Mode reforçado)")
+print("🟣 Seraphim-Hub carregado! (Estilo Linno)")
