@@ -1,6 +1,5 @@
 --// Seraphim-Hub
---// Sistema de áreas + linha branca + teleporte direto + God Mode
---// Para uso no seu próprio jogo no Roblox Studio
+--// Sistema de áreas + linha branca + teleporte direto + God Mode reforçado
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -13,6 +12,7 @@ local Player = Players.LocalPlayer
 
 local DistanciaDoChao = 3
 local TempoEntreAreas = 0.8
+local VidaTravada = 100000
 
 local Areas = {
     {Nome = "SafeZone",      Display = "SafeZone"},
@@ -31,7 +31,7 @@ local Areas = {
 }
 
 --==================================================
--- GOD MODE (sempre ativo)
+-- GOD MODE REFORÇADO
 --==================================================
 
 local function AplicarGodMode(Character)
@@ -44,6 +44,19 @@ local function AplicarGodMode(Character)
     FF.Name = "SeraphimGodMode"
     FF.Visible = false
     FF.Parent = Character
+
+    local Hum = Character:FindFirstChildOfClass("Humanoid")
+    if Hum then
+        Hum.MaxHealth = math.max(Hum.MaxHealth, VidaTravada)
+        Hum.Health = Hum.MaxHealth
+
+        -- Reforça sempre que alguém tentar mexer
+        Hum.HealthChanged:Connect(function(NovaVida)
+            if NovaVida < Hum.MaxHealth then
+                Hum.Health = Hum.MaxHealth
+            end
+        end)
+    end
 end
 
 if Player.Character then
@@ -51,19 +64,30 @@ if Player.Character then
 end
 
 Player.CharacterAdded:Connect(function(Char)
-    task.wait(0.5)
+    task.wait(0.2)
     AplicarGodMode(Char)
 end)
 
--- Monitor de vida (backup caso ForceField não segure)
+-- Loop principal de defesa (bem rápido)
 task.spawn(function()
     while true do
-        task.wait(0.1)
+        task.wait(0.03)
+
         local Char = Player.Character
         if Char then
             local Hum = Char:FindFirstChildOfClass("Humanoid")
-            if Hum and Hum.Health < Hum.MaxHealth then
-                Hum.Health = Hum.MaxHealth
+            if Hum then
+                if Hum.MaxHealth < VidaTravada then
+                    Hum.MaxHealth = VidaTravada
+                end
+                if Hum.Health < Hum.MaxHealth then
+                    Hum.Health = Hum.MaxHealth
+                end
+            end
+
+            -- Se por acaso o ForceField sumir, recoloca
+            if not Char:FindFirstChild("SeraphimGodMode") then
+                AplicarGodMode(Char)
             end
         end
     end
@@ -95,10 +119,6 @@ local MainStroke = Instance.new("UIStroke")
 MainStroke.Color = Color3.fromRGB(100, 200, 255)
 MainStroke.Thickness = 2
 MainStroke.Parent = Main
-
---==================================================
--- TOPO
---==================================================
 
 local Top = Instance.new("Frame")
 Top.Size = UDim2.new(1, 0, 0, 34)
@@ -136,10 +156,6 @@ local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(0, 6)
 CloseCorner.Parent = CloseButton
 
---==================================================
--- STATUS
---==================================================
-
 local Status = Instance.new("TextLabel")
 Status.Size = UDim2.new(1, -16, 0, 25)
 Status.Position = UDim2.fromOffset(8, 40)
@@ -149,10 +165,6 @@ Status.TextColor3 = Color3.fromRGB(180, 190, 200)
 Status.TextSize = 11
 Status.Font = Enum.Font.Gotham
 Status.Parent = Main
-
---==================================================
--- LISTA
---==================================================
 
 local ScrollingFrame = Instance.new("ScrollingFrame")
 ScrollingFrame.Name = "ListaAreas"
@@ -175,10 +187,7 @@ Layout.Parent = ScrollingFrame
 
 Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     ScrollingFrame.CanvasSize = UDim2.new(
-        0,
-        0,
-        0,
-        Layout.AbsoluteContentSize.Y + 8
+        0, 0, 0, Layout.AbsoluteContentSize.Y + 8
     )
 end)
 
@@ -197,7 +206,6 @@ local function AtualizarSelecao()
 end
 
 for Index, Area in ipairs(Areas) do
-
     local Button = Instance.new("TextButton")
     Button.Size = UDim2.new(1, -8, 0, 30)
     Button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
@@ -220,10 +228,6 @@ for Index, Area in ipairs(Areas) do
         AtualizarSelecao()
     end)
 end
-
---==================================================
--- BOTÃO STOP BOTS
---==================================================
 
 local StopButton = Instance.new("TextButton")
 StopButton.Size = UDim2.new(1, -16, 0, 38)
@@ -250,84 +254,50 @@ end
 
 local function EncontrarArea(Nome)
     local Container = EncontrarContainer()
-
     local Area = Container:FindFirstChild(Nome)
-
-    if Area then
-        return Area
-    end
+    if Area then return Area end
 
     for _, Obj in ipairs(Container:GetDescendants()) do
         if Obj.Name == Nome
             and (Obj:IsA("Model") or Obj:IsA("Folder")) then
-
             return Obj
         end
     end
-
     return nil
 end
 
---==================================================
--- POSIÇÃO DA ÁREA
---==================================================
-
 local function ObterCFrameDaArea(Area)
-
-    if not Area then
-        return nil
-    end
+    if not Area then return nil end
 
     if Area:IsA("Model") then
         local Ok, Pivot = pcall(function()
             return Area:GetPivot()
         end)
-
-        if Ok then
-            return Pivot
-        end
+        if Ok then return Pivot end
     end
 
     if Area:IsA("BasePart") then
         return Area.CFrame
     end
 
-    local Part = Area:FindFirstChildWhichIsA(
-        "BasePart",
-        true
-    )
-
-    if Part then
-        return Part.CFrame
-    end
+    local Part = Area:FindFirstChildWhichIsA("BasePart", true)
+    if Part then return Part.CFrame end
 
     return nil
 end
 
---==================================================
--- POSIÇÃO DIRETAMENTE NO CHÃO
---==================================================
-
 local function PegarPosicaoSegura(Area)
-
     local BaseCFrame = ObterCFrameDaArea(Area)
-
-    if not BaseCFrame then
-        return nil
-    end
+    if not BaseCFrame then return nil end
 
     local Params = RaycastParams.new()
-
     Params.FilterType = Enum.RaycastFilterType.Exclude
-
     Params.FilterDescendantsInstances = {
         Player.Character,
         Area
     }
 
     local Posicao = BaseCFrame.Position
-
-    -- Começa bem acima e procura o chão
     local Origem = Posicao + Vector3.new(0, 100, 0)
 
     local Resultado = workspace:Raycast(
@@ -337,7 +307,6 @@ local function PegarPosicaoSegura(Area)
     )
 
     if Resultado then
-
         return CFrame.new(
             Posicao.X,
             Resultado.Position.Y + DistanciaDoChao,
@@ -345,7 +314,6 @@ local function PegarPosicaoSegura(Area)
         )
     end
 
-    -- Fallback
     return CFrame.new(
         Posicao.X,
         Posicao.Y + DistanciaDoChao,
@@ -358,42 +326,25 @@ end
 --==================================================
 
 local function DetectarAreaAtual()
-
     local Character = Player.Character
+    if not Character then return nil end
 
-    if not Character then
-        return nil
-    end
-
-    local Root = Character:FindFirstChild(
-        "HumanoidRootPart"
-    )
-
-    if not Root then
-        return nil
-    end
+    local Root = Character:FindFirstChild("HumanoidRootPart")
+    if not Root then return nil end
 
     local Melhor = nil
     local MenorDistancia = math.huge
 
     for _, Info in ipairs(Areas) do
-
         local Area = EncontrarArea(Info.Nome)
-
         if Area then
-
             local Posicao = PegarPosicaoSegura(Area)
-
             if Posicao then
-
                 local Distancia =
                     (Root.Position - Posicao.Position).Magnitude
-
                 if Distancia < MenorDistancia then
-
                     MenorDistancia = Distancia
                     Melhor = Info.Nome
-
                 end
             end
         end
@@ -407,75 +358,45 @@ end
 --==================================================
 
 local function CriarRota(Destino)
-
     local Atual = DetectarAreaAtual()
 
     local IndiceAtual = nil
     local IndiceDestino = nil
 
     for I, Area in ipairs(Areas) do
-
-        if Area.Nome == Atual then
-            IndiceAtual = I
-        end
-
-        if Area.Nome == Destino then
-            IndiceDestino = I
-        end
+        if Area.Nome == Atual then IndiceAtual = I end
+        if Area.Nome == Destino then IndiceDestino = I end
     end
 
-    if not IndiceDestino then
-        return {}
-    end
+    if not IndiceDestino then return {} end
 
-    -- Se já está no destino, vai para a próxima área
     if IndiceAtual == IndiceDestino then
-
         IndiceAtual += 1
-
-        if IndiceAtual > #Areas then
-            IndiceAtual = 1
-        end
+        if IndiceAtual > #Areas then IndiceAtual = 1 end
     end
 
     local Rota = {}
 
-    -- Indo para AngelsDemons:
-    -- não passa pela SafeZone
     if Destino == "AngelsDemons" then
-
         if IndiceAtual and IndiceAtual < IndiceDestino then
-
             for I = IndiceAtual + 1, IndiceDestino do
                 table.insert(Rota, Areas[I])
             end
-
         else
-
             table.insert(Rota, Areas[IndiceDestino])
-
         end
-
         return Rota
     end
 
-    -- Frente
     if IndiceAtual and IndiceAtual < IndiceDestino then
-
         for I = IndiceAtual + 1, IndiceDestino do
             table.insert(Rota, Areas[I])
         end
-
-    -- Trás
     elseif IndiceAtual and IndiceAtual > IndiceDestino then
-
         for I = IndiceAtual - 1, IndiceDestino, -1 do
             table.insert(Rota, Areas[I])
         end
-
-    -- Sem área detectada
     else
-
         for I = 1, IndiceDestino do
             table.insert(Rota, Areas[I])
         end
@@ -495,7 +416,6 @@ PastaLinha.Parent = workspace
 local LinhaAtual = nil
 
 local function RemoverLinha()
-
     if LinhaAtual then
         LinhaAtual:Destroy()
         LinhaAtual = nil
@@ -503,64 +423,39 @@ local function RemoverLinha()
 end
 
 local function MostrarLinha(AreaInfo)
-
     RemoverLinha()
 
     local Character = Player.Character
+    if not Character then return end
 
-    if not Character then
-        return
-    end
-
-    local Root = Character:FindFirstChild(
-        "HumanoidRootPart"
-    )
-
-    if not Root then
-        return
-    end
+    local Root = Character:FindFirstChild("HumanoidRootPart")
+    if not Root then return end
 
     local Area = EncontrarArea(AreaInfo.Nome)
-
-    if not Area then
-        return
-    end
+    if not Area then return end
 
     local Posicao = PegarPosicaoSegura(Area)
-
-    if not Posicao then
-        return
-    end
+    if not Posicao then return end
 
     local Folder = Instance.new("Folder")
     Folder.Name = "Linha"
 
     local Inicio = Instance.new("Attachment")
     Inicio.Name = "Inicio"
-    Inicio.Parent = Root
 
     local Fim = Instance.new("Attachment")
     Fim.Name = "Destino"
     Fim.WorldPosition = Posicao.Position
-    Fim.Parent = workspace.Terrain
 
     local Beam = Instance.new("Beam")
-
     Beam.Name = "LinhaBranca"
-
     Beam.Attachment0 = Inicio
     Beam.Attachment1 = Fim
-
-    Beam.Color = ColorSequence.new(
-        Color3.fromRGB(255, 255, 255)
-    )
-
+    Beam.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
     Beam.Width0 = 0.08
     Beam.Width1 = 0.08
-
     Beam.FaceCamera = true
     Beam.LightEmission = 1
-
     Beam.Parent = Folder
 
     Inicio.Parent = Folder
@@ -572,18 +467,34 @@ local function MostrarLinha(AreaInfo)
 end
 
 --==================================================
--- TELEPORTE
+-- ESPERAR PERSONAGEM VIVO
+--==================================================
+
+local function EsperarPersonagemVivo(Timeout)
+    Timeout = Timeout or 5
+
+    local Inicio = tick()
+
+    while tick() - Inicio < Timeout do
+        local Char = Player.Character
+        if Char and Char.Parent then
+            local Hum = Char:FindFirstChildOfClass("Humanoid")
+            local Root = Char:FindFirstChild("HumanoidRootPart")
+            if Hum and Root and Hum.Health > 0 then
+                return Char, Hum, Root
+            end
+        end
+        task.wait(0.1)
+    end
+
+    return nil
+end
+
+--==================================================
+-- TELEPORTE COM RETRY
 --==================================================
 
 local function TeleportarParaArea(AreaInfo)
-
-    local Character = Player.Character
-    if not Character then return false end
-
-    local Root = Character:FindFirstChild("HumanoidRootPart")
-    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
-    if not Root or not Humanoid then return false end
-
     local Area = EncontrarArea(AreaInfo.Nome)
     if not Area then
         warn("Seraphim-Hub: área não encontrada:", AreaInfo.Nome)
@@ -593,47 +504,68 @@ local function TeleportarParaArea(AreaInfo)
     local Posicao = PegarPosicaoSegura(Area)
     if not Posicao then return false end
 
-    -- 1) Trava o Humanoid
-    Humanoid.WalkSpeed = 0
-    Humanoid.JumpPower = 0
-    Humanoid.JumpHeight = 0
+    for Tentativa = 1, 3 do
+        local Char, Hum, Root = EsperarPersonagemVivo(3)
 
-    -- 2) Para completamente o personagem
-    Root.AssemblyLinearVelocity = Vector3.zero
-    Root.AssemblyAngularVelocity = Vector3.zero
-
-    -- 3) Desativa colisão das partes por um instante
-    local PartesSalvas = {}
-    for _, Part in ipairs(Character:GetDescendants()) do
-        if Part:IsA("BasePart") and Part.CanCollide then
-            PartesSalvas[Part] = true
-            Part.CanCollide = false
+        if not Char then
+            task.wait(0.3)
+            continue
         end
+
+        local CharRef = Char
+
+        -- Trava movimento
+        Hum.WalkSpeed = 0
+        Hum.JumpPower = 0
+        Hum.JumpHeight = 0
+
+        Root.AssemblyLinearVelocity = Vector3.zero
+        Root.AssemblyAngularVelocity = Vector3.zero
+
+        -- Desativa colisão
+        local PartesSalvas = {}
+        for _, Part in ipairs(Char:GetDescendants()) do
+            if Part:IsA("BasePart") and Part.CanCollide then
+                PartesSalvas[Part] = true
+                Part.CanCollide = false
+            end
+        end
+
+        -- Pivot no model inteiro
+        pcall(function()
+            Char:PivotTo(Posicao)
+        end)
+
+        Root.AssemblyLinearVelocity = Vector3.zero
+        Root.AssemblyAngularVelocity = Vector3.zero
+
+        task.wait(0.12)
+
+        -- Personagem morreu durante o teleporte?
+        if Player.Character ~= CharRef then
+            -- Espera respawnar e tenta de novo
+            task.wait(0.5)
+            continue
+        end
+
+        -- Restaura colisão
+        for Part in pairs(PartesSalvas) do
+            if Part.Parent then
+                Part.CanCollide = true
+            end
+        end
+
+        -- Libera movimento
+        if Hum and Hum.Parent then
+            Hum.WalkSpeed = 16
+            Hum.JumpPower = 50
+            Hum.JumpHeight = 7.2
+        end
+
+        return true
     end
 
-    -- 4) Teleporta o MODEL inteiro (não só o Root)
-    Character:PivotTo(Posicao)
-
-    -- 5) Zera velocidade de novo depois do pivot
-    Root.AssemblyLinearVelocity = Vector3.zero
-    Root.AssemblyAngularVelocity = Vector3.zero
-
-    -- 6) Espera um frame pra física assentar
-    task.wait(0.15)
-
-    -- 7) Restaura colisão
-    for Part in pairs(PartesSalvas) do
-        if Part.Parent then
-            Part.CanCollide = true
-        end
-    end
-
-    -- 8) Libera o Humanoid
-    Humanoid.WalkSpeed = 16
-    Humanoid.JumpPower = 50
-    Humanoid.JumpHeight = 7.2
-
-    return true
+    return false
 end
 
 --==================================================
@@ -643,64 +575,46 @@ end
 local Executando = false
 
 local function Executar()
-
     if Executando then
-
         Executando = false
-
         RemoverLinha()
-
         Status.Text = "Parado"
         StopButton.Text = "⛔ Stop Bots"
-
         return
     end
 
     if not AreaSelecionada then
-
         Status.Text = "Escolha uma área!"
-
         return
     end
 
-    local Rota = CriarRota(
-        AreaSelecionada
-    )
-
+    local Rota = CriarRota(AreaSelecionada)
     if #Rota == 0 then
-
         Status.Text = "Rota vazia!"
-
         return
     end
 
     Executando = true
-
     StopButton.Text = "⛔ Parar"
 
     for I, Info in ipairs(Rota) do
+        if not Executando then break end
 
-        if not Executando then
-            break
+        -- Garante personagem vivo antes de seguir
+        local Char = EsperarPersonagemVivo(5)
+        if not Char then
+            Status.Text = "Sem personagem..."
+            task.wait(0.5)
+            continue
         end
 
-        Status.Text =
-            Info.Display ..
-            "  " ..
-            I ..
-            "/" ..
-            #Rota
+        Status.Text = Info.Display .. "  " .. I .. "/" .. #Rota
 
-        -- Mostra primeiro para onde vai
         MostrarLinha(Info)
+        task.wait(0.35)
 
-        task.wait(0.4)
+        if not Executando then break end
 
-        if not Executando then
-            break
-        end
-
-        -- Teleporta diretamente para o chão
         TeleportarParaArea(Info)
 
         task.wait(TempoEntreAreas)
@@ -715,13 +629,8 @@ local function Executar()
     end
 
     Executando = false
-
     StopButton.Text = "⛔ Stop Bots"
 end
-
---==================================================
--- BOTÃO
---==================================================
 
 StopButton.MouseButton1Click:Connect(function()
     Executar()
@@ -732,16 +641,14 @@ end)
 --==================================================
 
 CloseButton.MouseButton1Click:Connect(function()
-
     Main.Visible = not Main.Visible
-
     if not Main.Visible then
         RemoverLinha()
     end
 end)
 
 --==================================================
--- ARRASTAR PAINEL
+-- ARRASTAR
 --==================================================
 
 local Dragging = false
@@ -749,20 +656,14 @@ local DragStart = Vector2.zero
 local InicioPos = UDim2.new()
 
 Top.InputBegan:Connect(function(Input)
-
     if Input.UserInputType == Enum.UserInputType.MouseButton1
         or Input.UserInputType == Enum.UserInputType.Touch then
-
         Dragging = true
-
         DragStart = Input.Position
         InicioPos = Main.Position
 
         Input.Changed:Connect(function()
-
-            if Input.UserInputState ==
-                Enum.UserInputState.End then
-
+            if Input.UserInputState == Enum.UserInputState.End then
                 Dragging = false
             end
         end)
@@ -770,25 +671,14 @@ Top.InputBegan:Connect(function(Input)
 end)
 
 UserInputService.InputChanged:Connect(function(Input)
+    if not Dragging then return end
 
-    if not Dragging then
-        return
-    end
-
-    if Input.UserInputType ==
-        Enum.UserInputType.MouseMovement
-        or Input.UserInputType ==
-        Enum.UserInputType.Touch then
-
-        local Delta =
-            Input.Position - DragStart
-
+    if Input.UserInputType == Enum.UserInputType.MouseMovement
+        or Input.UserInputType == Enum.UserInputType.Touch then
+        local Delta = Input.Position - DragStart
         Main.Position = UDim2.new(
-            InicioPos.X.Scale,
-            InicioPos.X.Offset + Delta.X,
-
-            InicioPos.Y.Scale,
-            InicioPos.Y.Offset + Delta.Y
+            InicioPos.X.Scale, InicioPos.X.Offset + Delta.X,
+            InicioPos.Y.Scale, InicioPos.Y.Offset + Delta.Y
         )
     end
 end)
@@ -797,4 +687,4 @@ end)
 -- INÍCIO
 --==================================================
 
-print("Seraphim-Hub carregado! (God Mode ativo)")
+print("Seraphim-Hub carregado! (God Mode reforçado)")
