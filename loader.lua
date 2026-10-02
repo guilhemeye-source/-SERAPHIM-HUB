@@ -1,5 +1,5 @@
 --// Seraphim-Hub
---// Sistema de áreas com lista rolável
+--// Sistema de áreas com lista rolável - Versão Corrigida
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -10,23 +10,23 @@ local Player = Players.LocalPlayer
 -- CONFIGURAÇÃO
 --==================================================
 
-local Altura = 4
-local TempoEntreAreas = 0.25
+local Altura = 6
+local TempoEntreAreas = 0.4
 
 local Areas = {
-    {Nome = "SafeZone",       Display = "SafeZone"},
-    {Nome = "Forest",         Display = "Forest"},
-    {Nome = "Lake",           Display = "Lake"},
-    {Nome = "Desert",         Display = "Desert"},
-    {Nome = "Jungle",         Display = "Jungle"},
-    {Nome = "Snow",           Display = "Snow"},
-    {Nome = "Volcano",        Display = "Volcano"},
-    {Nome = "AbyssOcean",     Display = "Abyss Ocean"},
-    {Nome = "Prehistoric",    Display = "Prehistoric"},
-    {Nome = "Cosmic",         Display = "Cosmic"},
-    {Nome = "CherryBlossom",  Display = "Cherry Blossom"},
-    {Nome = "TitanTemple",    Display = "Titan Temple"},
-    {Nome = "AngelsDemons",   Display = "Angels & Demons"}
+    {Nome = "SafeZone",      Display = "SafeZone"},
+    {Nome = "Forest",        Display = "Forest"},
+    {Nome = "Lake",          Display = "Lake"},
+    {Nome = "Desert",        Display = "Desert"},
+    {Nome = "Jungle",        Display = "Jungle"},
+    {Nome = "Snow",          Display = "Snow"},
+    {Nome = "Volcano",       Display = "Volcano"},
+    {Nome = "AbyssOcean",    Display = "Abyss Ocean"},
+    {Nome = "Prehistoric",   Display = "Prehistoric"},
+    {Nome = "Cosmic",        Display = "Cosmic"},
+    {Nome = "CherryBlossom", Display = "Cherry Blossom"},
+    {Nome = "TitanTemple",   Display = "Titan Temple"},
+    {Nome = "AngelsDemons",  Display = "Angels & Demons"}
 }
 
 --==================================================
@@ -40,6 +40,7 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
 local Main = Instance.new("Frame")
+Main.Name = "Main"
 Main.Size = UDim2.fromOffset(245, 280)
 Main.Position = UDim2.new(0.5, -122, 0.5, -140)
 Main.BackgroundColor3 = Color3.fromRGB(15, 18, 25)
@@ -110,7 +111,7 @@ Status.Font = Enum.Font.Gotham
 Status.Parent = Main
 
 --==================================================
--- LISTA ROLÁVEL
+-- LISTA
 --==================================================
 
 local ScrollingFrame = Instance.new("ScrollingFrame")
@@ -142,7 +143,7 @@ Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 end)
 
 --==================================================
--- BOTÕES DE ÁREA
+-- SELEÇÃO
 --==================================================
 
 local AreaSelecionada = nil
@@ -154,9 +155,11 @@ local function AtualizarSelecao()
         if Button:IsA("TextButton") then
 
             if Button:GetAttribute("Area") == AreaSelecionada then
-                Button.BackgroundColor3 = Color3.fromRGB(0, 90, 150)
+                Button.BackgroundColor3 =
+                    Color3.fromRGB(0, 90, 150)
             else
-                Button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+                Button.BackgroundColor3 =
+                    Color3.fromRGB(0, 0, 0)
             end
 
         end
@@ -193,7 +196,7 @@ for Index, Area in ipairs(Areas) do
 end
 
 --==================================================
--- BOTÃO STOP BOTS
+-- BOTÃO
 --==================================================
 
 local StopButton = Instance.new("TextButton")
@@ -240,12 +243,12 @@ local function EncontrarArea(Nome)
         return Area
     end
 
-    for _, Object in ipairs(Container:GetDescendants()) do
+    for _, Obj in ipairs(Container:GetDescendants()) do
 
-        if Object.Name == Nome
-        and (Object:IsA("Model") or Object:IsA("Folder")) then
+        if Obj.Name == Nome
+        and (Obj:IsA("Model") or Obj:IsA("Folder")) then
 
-            return Object
+            return Obj
         end
     end
 
@@ -253,7 +256,28 @@ local function EncontrarArea(Nome)
 end
 
 --==================================================
--- PEGAR POSIÇÃO DA ÁREA
+-- RAYCAST
+--==================================================
+
+local function CriarRaycastParams()
+
+    local Params = RaycastParams.new()
+
+    Params.FilterType = Enum.RaycastFilterType.Exclude
+
+    if Player.Character then
+        Params.FilterDescendantsInstances = {
+            Player.Character
+        }
+    end
+
+    Params.IgnoreWater = false
+
+    return Params
+end
+
+--==================================================
+-- POSIÇÃO DA ÁREA
 --==================================================
 
 local function PegarPosicao(Area)
@@ -262,31 +286,77 @@ local function PegarPosicao(Area)
         return nil
     end
 
+    local PosicaoBase = nil
+
     if Area:IsA("Model") then
 
-        local Success, Pivot = pcall(function()
+        local Sucesso, Pivot = pcall(function()
             return Area:GetPivot()
         end)
 
-        if Success then
-            return Pivot
+        if Sucesso then
+            PosicaoBase = Pivot
+        end
+
+    elseif Area:IsA("BasePart") then
+
+        PosicaoBase = Area.CFrame
+    end
+
+    if not PosicaoBase then
+
+        local Part =
+            Area:FindFirstChildWhichIsA(
+                "BasePart",
+                true
+            )
+
+        if Part then
+            PosicaoBase = Part.CFrame
         end
     end
 
-    if Area:IsA("BasePart") then
-        return Area.CFrame
+    if not PosicaoBase then
+        return nil
     end
 
-    local Part = Area:FindFirstChildWhichIsA(
-        "BasePart",
-        true
+    -- Procura o chão abaixo da área
+    local Params = CriarRaycastParams()
+
+    local Origem =
+        PosicaoBase.Position
+        + Vector3.new(0, 50, 0)
+
+    local Direcao =
+        Vector3.new(0, -100, 0)
+
+    local Resultado =
+        workspace:Raycast(
+            Origem,
+            Direcao,
+            Params
+        )
+
+    local Y
+
+    if Resultado then
+
+        Y =
+            Resultado.Position.Y
+            + Altura
+
+    else
+
+        Y =
+            PosicaoBase.Position.Y
+            + Altura
+    end
+
+    return CFrame.new(
+        PosicaoBase.Position.X,
+        Y,
+        PosicaoBase.Position.Z
     )
-
-    if Part then
-        return Part.CFrame
-    end
-
-    return nil
 end
 
 --==================================================
@@ -301,7 +371,10 @@ local function DetectarAreaAtual()
         return nil
     end
 
-    local Root = Character:FindFirstChild("HumanoidRootPart")
+    local Root =
+        Character:FindFirstChild(
+            "HumanoidRootPart"
+        )
 
     if not Root then
         return nil
@@ -310,23 +383,28 @@ local function DetectarAreaAtual()
     local MelhorArea = nil
     local MenorDistancia = math.huge
 
-    for _, AreaInfo in ipairs(Areas) do
+    for _, Info in ipairs(Areas) do
 
-        local Area = EncontrarArea(AreaInfo.Nome)
+        local Area =
+            EncontrarArea(Info.Nome)
 
         if Area then
 
-            local Posicao = PegarPosicao(Area)
+            local Posicao =
+                PegarPosicao(Area)
 
             if Posicao then
 
                 local Distancia =
-                    (Root.Position - Posicao.Position).Magnitude
+                    (
+                        Root.Position
+                        - Posicao.Position
+                    ).Magnitude
 
                 if Distancia < MenorDistancia then
 
                     MenorDistancia = Distancia
-                    MelhorArea = AreaInfo.Nome
+                    MelhorArea = Info.Nome
 
                 end
             end
@@ -342,19 +420,20 @@ end
 
 local function CriarRota(Destino)
 
-    local Atual = DetectarAreaAtual()
+    local Atual =
+        DetectarAreaAtual()
 
     local IndiceAtual = nil
     local IndiceDestino = nil
 
-    for Index, Area in ipairs(Areas) do
+    for I, Area in ipairs(Areas) do
 
         if Area.Nome == Atual then
-            IndiceAtual = Index
+            IndiceAtual = I
         end
 
         if Area.Nome == Destino then
-            IndiceDestino = Index
+            IndiceDestino = I
         end
     end
 
@@ -362,50 +441,90 @@ local function CriarRota(Destino)
         return {}
     end
 
-    -- Se já estiver no destino,
-    -- começa pela próxima área.
-    if IndiceAtual == IndiceDestino then
-
-        IndiceAtual = IndiceAtual + 1
-
-        if IndiceAtual > #Areas then
-            IndiceAtual = 1
-        end
-    end
-
     local Rota = {}
 
-    --==================================================
+    --==============================================
     -- ANGELS DEMONS
-    --==================================================
+    --==============================================
 
     if Destino == "AngelsDemons" then
 
-        table.insert(Rota, Areas[IndiceDestino])
+        if Atual ~= "AngelsDemons" then
+            table.insert(
+                Rota,
+                Areas[IndiceDestino]
+            )
+        end
 
         return Rota
     end
 
-    --==================================================
-    -- CAMINHO NORMAL
-    --==================================================
+    --==============================================
+    -- SE JÁ ESTÁ NO DESTINO
+    --==============================================
 
-    if IndiceAtual and IndiceAtual < IndiceDestino then
+    if IndiceAtual == IndiceDestino then
 
-        for I = IndiceAtual + 1, IndiceDestino do
-            table.insert(Rota, Areas[I])
+        if IndiceAtual == #Areas then
+
+            -- AngelsDemons -> volta até SafeZone
+            for I = IndiceAtual - 1, 1, -1 do
+                table.insert(Rota, Areas[I])
+            end
+
+        else
+
+            -- Pula a área atual
+            for I = IndiceAtual + 1, IndiceDestino do
+                table.insert(Rota, Areas[I])
+            end
+
         end
 
-    elseif IndiceAtual and IndiceAtual > IndiceDestino then
+        return Rota
+    end
 
-        for I = IndiceAtual - 1, IndiceDestino, -1 do
-            table.insert(Rota, Areas[I])
-        end
+    --==============================================
+    -- NÃO DETECTOU A ÁREA
+    --==============================================
 
-    else
+    if not IndiceAtual then
 
         for I = 1, IndiceDestino do
             table.insert(Rota, Areas[I])
+        end
+
+        return Rota
+    end
+
+    --==============================================
+    -- FRENTE
+    --==============================================
+
+    if IndiceAtual < IndiceDestino then
+
+        for I = IndiceAtual + 1, IndiceDestino do
+
+            table.insert(
+                Rota,
+                Areas[I]
+            )
+
+        end
+
+    --==============================================
+    -- TRÁS
+    --==============================================
+
+    else
+
+        for I = IndiceAtual - 1, IndiceDestino, -1 do
+
+            table.insert(
+                Rota,
+                Areas[I]
+            )
+
         end
     end
 
@@ -413,41 +532,63 @@ local function CriarRota(Destino)
 end
 
 --==================================================
--- TELEPORTE
+-- TELEPORTAR
 --==================================================
 
 local Executando = false
 
 local function TeleportarParaArea(AreaInfo)
 
-    local Character = Player.Character
+    local Character =
+        Player.Character
 
     if not Character then
         return false
     end
 
-    local Root = Character:FindFirstChild("HumanoidRootPart")
+    local Root =
+        Character:FindFirstChild(
+            "HumanoidRootPart"
+        )
 
     if not Root then
         return false
     end
 
-    local Area = EncontrarArea(AreaInfo.Nome)
+    local Area =
+        EncontrarArea(AreaInfo.Nome)
 
     if not Area then
-        warn("Área não encontrada:", AreaInfo.Nome)
+
+        warn(
+            "Seraphim-Hub: Área não encontrada:",
+            AreaInfo.Nome
+        )
+
         return false
     end
 
-    local Posicao = PegarPosicao(Area)
+    local Posicao =
+        PegarPosicao(Area)
 
     if not Posicao then
-        warn("Não foi possível obter posição:", AreaInfo.Nome)
+
+        warn(
+            "Seraphim-Hub: Sem posição:",
+            AreaInfo.Nome
+        )
+
         return false
     end
 
-    Root.CFrame =
-        Posicao + Vector3.new(0, Altura, 0)
+    Root.CFrame = Posicao
+
+    -- Remove velocidade que poderia causar queda
+    Root.AssemblyLinearVelocity =
+        Vector3.zero
+
+    Root.AssemblyAngularVelocity =
+        Vector3.zero
 
     return true
 end
@@ -464,47 +605,98 @@ local function Executar()
 
     if not AreaSelecionada then
 
-        Status.Text = "Escolha uma área!"
+        Status.Text =
+            "Escolha uma área!"
 
         return
     end
 
-    local Rota = CriarRota(AreaSelecionada)
+    local Rota =
+        CriarRota(
+            AreaSelecionada
+        )
 
     if #Rota == 0 then
 
-        Status.Text = "Rota vazia!"
+        Status.Text =
+            "Destino já alcançado!"
+
         return
     end
 
     Executando = true
 
-    for Index, AreaInfo in ipairs(Rota) do
+    StopButton.Text =
+        "⛔ Parar Rota"
+
+    for I, Info in ipairs(Rota) do
 
         if not Executando then
             break
         end
 
         Status.Text =
-            AreaInfo.Display
+            Info.Display
             .. "  "
-            .. Index
+            .. I
             .. "/"
             .. #Rota
 
-        TeleportarParaArea(AreaInfo)
+        local Sucesso =
+            TeleportarParaArea(
+                Info
+            )
 
-        task.wait(TempoEntreAreas)
+        if not Sucesso then
+
+            Status.Text =
+                "Erro: "
+                .. Info.Display
+
+            break
+        end
+
+        task.wait(
+            TempoEntreAreas
+        )
     end
 
-    Status.Text = "Destino alcançado!"
+    if Executando then
+        Status.Text =
+            "Destino alcançado!"
+    else
+        Status.Text =
+            "Rota parada!"
+    end
+
     Executando = false
+
+    StopButton.Text =
+        "🛑 Stop Bots"
 end
+
+--==================================================
+-- BOTÃO
+--==================================================
 
 StopButton.MouseButton1Click:Connect(function()
 
-    task.spawn(Executar)
+    if Executando then
 
+        Executando = false
+
+        Status.Text =
+            "Rota parada!"
+
+        StopButton.Text =
+            "🛑 Stop Bots"
+
+        return
+    end
+
+    task.spawn(
+        Executar
+    )
 end)
 
 --==================================================
@@ -512,32 +704,42 @@ end)
 --==================================================
 
 CloseButton.MouseButton1Click:Connect(function()
-    Main.Visible = false
+
+    Main.Visible =
+        not Main.Visible
 end)
 
 --==================================================
--- ARRASTAR
+-- ARRASTAR PAINEL
 --==================================================
 
 local Dragging = false
 local DragStart
-local StartPos
+local InicioPos
 
 Top.InputBegan:Connect(function(Input)
 
-    if Input.UserInputType == Enum.UserInputType.MouseButton1
-    or Input.UserInputType == Enum.UserInputType.Touch then
+    if Input.UserInputType ==
+        Enum.UserInputType.MouseButton1
+        or Input.UserInputType ==
+        Enum.UserInputType.Touch then
 
         Dragging = true
-        DragStart = Input.Position
-        StartPos = Main.Position
+
+        DragStart =
+            Input.Position
+
+        InicioPos =
+            Main.Position
 
         Input.Changed:Connect(function()
 
-            if Input.UserInputState == Enum.UserInputState.End then
-                Dragging = false
-            end
+            if Input.UserInputState ==
+                Enum.UserInputState.End then
 
+                Dragging = false
+
+            end
         end)
     end
 end)
@@ -548,18 +750,23 @@ UserInputService.InputChanged:Connect(function(Input)
         return
     end
 
-    if Input.UserInputType == Enum.UserInputType.MouseMovement
-    or Input.UserInputType == Enum.UserInputType.Touch then
+    if Input.UserInputType ==
+        Enum.UserInputType.MouseMovement
+        or Input.UserInputType ==
+        Enum.UserInputType.Touch then
 
         local Delta =
-            Input.Position - DragStart
+            Input.Position
+            - DragStart
 
-        Main.Position = UDim2.new(
-            StartPos.X.Scale,
-            StartPos.X.Offset + Delta.X,
-            StartPos.Y.Scale,
-            StartPos.Y.Offset + Delta.Y
-        )
+        Main.Position =
+            UDim2.new(
+                InicioPos.X.Scale,
+                InicioPos.X.Offset + Delta.X,
+
+                InicioPos.Y.Scale,
+                InicioPos.Y.Offset + Delta.Y
+            )
     end
 end)
 
