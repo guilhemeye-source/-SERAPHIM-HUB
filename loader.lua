@@ -1,44 +1,32 @@
 --// Seraphim-Hub
---// Detecta automaticamente as áreas do mapa
---// Lista de teleporte + Anti-Travamento
---// Sem bypass de executor
+--// Sistema de áreas com lista rolável
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
 local Player = Players.LocalPlayer
-local PlayerGui = Player:WaitForChild("PlayerGui")
 
 --==================================================
 -- CONFIGURAÇÃO
 --==================================================
 
-local TEMPO_NO_FINAL = 7
-local ALTURA_DO_TELEPORTE = 4
-local TEMPO_ENTRE_AREAS = 0.25
+local Altura = 4
+local TempoEntreAreas = 0.25
 
--- Anti-travamento
-local TENTATIVAS_TELEPORTE = 3
-local ZERA_VELOCIDADE = true
-
---==================================================
--- ÁREAS E ORDEM
---==================================================
-
-local BiomasDoJogo = {
-    [0] = "SafeZone",
-    [1] = "Forest",
-    [2] = "Lake",
-    [3] = "Desert",
-    [4] = "Jungle",
-    [5] = "Snow",
-    [6] = "Volcano",
-    [7] = "AbyssOcean",
-    [8] = "Prehistoric",
-    [9] = "Cosmic",
-    [10] = "CherryBlossom",
-    [11] = "TitanTemple",
-    [12] = "AngelsDemons"
+local Areas = {
+    {Nome = "SafeZone",       Display = "SafeZone"},
+    {Nome = "Forest",         Display = "Forest"},
+    {Nome = "Lake",           Display = "Lake"},
+    {Nome = "Desert",         Display = "Desert"},
+    {Nome = "Jungle",         Display = "Jungle"},
+    {Nome = "Snow",           Display = "Snow"},
+    {Nome = "Volcano",        Display = "Volcano"},
+    {Nome = "AbyssOcean",     Display = "Abyss Ocean"},
+    {Nome = "Prehistoric",    Display = "Prehistoric"},
+    {Nome = "Cosmic",         Display = "Cosmic"},
+    {Nome = "CherryBlossom",  Display = "Cherry Blossom"},
+    {Nome = "TitanTemple",    Display = "Titan Temple"},
+    {Nome = "AngelsDemons",   Display = "Angels & Demons"}
 }
 
 --==================================================
@@ -49,35 +37,30 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "SeraphimHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.Parent = PlayerGui
-
---==================================================
--- PAINEL
---==================================================
+ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
 local Main = Instance.new("Frame")
-Main.Name = "Main"
-Main.Size = UDim2.fromOffset(220, 170)
-Main.Position = UDim2.new(0.5, -110, 0.5, -85)
+Main.Size = UDim2.fromOffset(245, 280)
+Main.Position = UDim2.new(0.5, -122, 0.5, -140)
 Main.BackgroundColor3 = Color3.fromRGB(15, 18, 25)
 Main.BorderSizePixel = 0
 Main.Parent = ScreenGui
 
-local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 9)
-Corner.Parent = Main
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 9)
+MainCorner.Parent = Main
 
-local Stroke = Instance.new("UIStroke")
-Stroke.Color = Color3.fromRGB(100, 200, 255)
-Stroke.Thickness = 2
-Stroke.Parent = Main
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(100, 200, 255)
+MainStroke.Thickness = 2
+MainStroke.Parent = Main
 
 --==================================================
 -- TOPO
 --==================================================
 
 local Top = Instance.new("Frame")
-Top.Size = UDim2.new(1, 0, 0, 32)
+Top.Size = UDim2.new(1, 0, 0, 34)
 Top.BackgroundColor3 = Color3.fromRGB(10, 13, 20)
 Top.BorderSizePixel = 0
 Top.Parent = Main
@@ -87,7 +70,7 @@ TopCorner.CornerRadius = UDim.new(0, 9)
 TopCorner.Parent = Top
 
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -42, 1, 0)
+Title.Size = UDim2.new(1, -45, 1, 0)
 Title.Position = UDim2.fromOffset(9, 0)
 Title.BackgroundTransparency = 1
 Title.Text = "Seraphim-Hub"
@@ -97,13 +80,9 @@ Title.Font = Enum.Font.GothamBold
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Top
 
---==================================================
--- FECHAR
---==================================================
-
 local CloseButton = Instance.new("TextButton")
 CloseButton.Size = UDim2.fromOffset(24, 24)
-CloseButton.Position = UDim2.new(1, -29, 0, 4)
+CloseButton.Position = UDim2.new(1, -29, 0, 5)
 CloseButton.BackgroundColor3 = Color3.fromRGB(30, 34, 43)
 CloseButton.BorderSizePixel = 0
 CloseButton.Text = "X"
@@ -122,14 +101,96 @@ CloseCorner.Parent = CloseButton
 
 local Status = Instance.new("TextLabel")
 Status.Size = UDim2.new(1, -16, 0, 25)
-Status.Position = UDim2.fromOffset(8, 42)
+Status.Position = UDim2.fromOffset(8, 40)
 Status.BackgroundTransparency = 1
-Status.Text = "Aguardando..."
+Status.Text = "Escolha uma área"
 Status.TextColor3 = Color3.fromRGB(180, 190, 200)
 Status.TextSize = 11
 Status.Font = Enum.Font.Gotham
-Status.TextXAlignment = Enum.TextXAlignment.Center
 Status.Parent = Main
+
+--==================================================
+-- LISTA ROLÁVEL
+--==================================================
+
+local ScrollingFrame = Instance.new("ScrollingFrame")
+ScrollingFrame.Name = "ListaAreas"
+ScrollingFrame.Size = UDim2.new(1, -16, 0, 150)
+ScrollingFrame.Position = UDim2.fromOffset(8, 67)
+ScrollingFrame.BackgroundColor3 = Color3.fromRGB(9, 11, 16)
+ScrollingFrame.BorderSizePixel = 0
+ScrollingFrame.ScrollBarThickness = 5
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollingFrame.Parent = Main
+
+local ScrollCorner = Instance.new("UICorner")
+ScrollCorner.CornerRadius = UDim.new(0, 7)
+ScrollCorner.Parent = ScrollingFrame
+
+local Layout = Instance.new("UIListLayout")
+Layout.Padding = UDim.new(0, 4)
+Layout.SortOrder = Enum.SortOrder.LayoutOrder
+Layout.Parent = ScrollingFrame
+
+Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    ScrollingFrame.CanvasSize = UDim2.new(
+        0,
+        0,
+        0,
+        Layout.AbsoluteContentSize.Y + 8
+    )
+end)
+
+--==================================================
+-- BOTÕES DE ÁREA
+--==================================================
+
+local AreaSelecionada = nil
+
+local function AtualizarSelecao()
+
+    for _, Button in ipairs(ScrollingFrame:GetChildren()) do
+
+        if Button:IsA("TextButton") then
+
+            if Button:GetAttribute("Area") == AreaSelecionada then
+                Button.BackgroundColor3 = Color3.fromRGB(0, 90, 150)
+            else
+                Button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+            end
+
+        end
+    end
+end
+
+for Index, Area in ipairs(Areas) do
+
+    local Button = Instance.new("TextButton")
+
+    Button.Size = UDim2.new(1, -8, 0, 30)
+    Button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Button.BorderSizePixel = 0
+    Button.Text = Area.Display
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 12
+    Button.Font = Enum.Font.GothamBold
+    Button.LayoutOrder = Index
+    Button:SetAttribute("Area", Area.Nome)
+    Button.Parent = ScrollingFrame
+
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 6)
+    ButtonCorner.Parent = Button
+
+    Button.MouseButton1Click:Connect(function()
+
+        AreaSelecionada = Area.Nome
+
+        Status.Text = "Destino: " .. Area.Display
+
+        AtualizarSelecao()
+    end)
+end
 
 --==================================================
 -- BOTÃO STOP BOTS
@@ -137,7 +198,7 @@ Status.Parent = Main
 
 local StopButton = Instance.new("TextButton")
 StopButton.Size = UDim2.new(1, -16, 0, 38)
-StopButton.Position = UDim2.fromOffset(8, 78)
+StopButton.Position = UDim2.fromOffset(8, 224)
 StopButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 StopButton.BorderSizePixel = 0
 StopButton.Text = "🛑 Stop Bots"
@@ -151,26 +212,7 @@ StopCorner.CornerRadius = UDim.new(0, 7)
 StopCorner.Parent = StopButton
 
 --==================================================
--- BOTÃO LISTA
---==================================================
-
-local ListaButton = Instance.new("TextButton")
-ListaButton.Size = UDim2.new(1, -16, 0, 38)
-ListaButton.Position = UDim2.fromOffset(8, 123)
-ListaButton.BackgroundColor3 = Color3.fromRGB(25, 30, 40)
-ListaButton.BorderSizePixel = 0
-ListaButton.Text = "📍 Lista de Áreas"
-ListaButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ListaButton.TextSize = 12
-ListaButton.Font = Enum.Font.GothamBold
-ListaButton.Parent = Main
-
-local ListaCorner = Instance.new("UICorner")
-ListaCorner.CornerRadius = UDim.new(0, 7)
-ListaCorner.Parent = ListaButton
-
---==================================================
--- ENCONTRAR CONTAINER DAS ÁREAS
+-- ENCONTRAR CONTAINER
 --==================================================
 
 local function EncontrarContainer()
@@ -201,11 +243,7 @@ local function EncontrarArea(Nome)
     for _, Object in ipairs(Container:GetDescendants()) do
 
         if Object.Name == Nome
-        and (
-            Object:IsA("Model")
-            or Object:IsA("Folder")
-            or Object:IsA("BasePart")
-        ) then
+        and (Object:IsA("Model") or Object:IsA("Folder")) then
 
             return Object
         end
@@ -215,17 +253,13 @@ local function EncontrarArea(Nome)
 end
 
 --==================================================
--- ENCONTRAR PONTO DA ÁREA
+-- PEGAR POSIÇÃO DA ÁREA
 --==================================================
 
-local function EncontrarPontoDaArea(Area)
+local function PegarPosicao(Area)
 
     if not Area then
         return nil
-    end
-
-    if Area:IsA("BasePart") then
-        return Area.CFrame
     end
 
     if Area:IsA("Model") then
@@ -234,9 +268,13 @@ local function EncontrarPontoDaArea(Area)
             return Area:GetPivot()
         end)
 
-        if Success and Pivot then
+        if Success then
             return Pivot
         end
+    end
+
+    if Area:IsA("BasePart") then
+        return Area.CFrame
     end
 
     local Part = Area:FindFirstChildWhichIsA(
@@ -252,148 +290,122 @@ local function EncontrarPontoDaArea(Area)
 end
 
 --==================================================
--- TELEPORTE ANTI-TRAVAMENTO
+-- DETECTAR ÁREA ATUAL
 --==================================================
 
-local function Teleportar(Root, Posicao)
+local function DetectarAreaAtual()
 
-    if not Root or not Posicao then
-        return false
-    end
-
-    local Character = Root.Parent
+    local Character = Player.Character
 
     if not Character then
-        return false
+        return nil
     end
 
-    local Humanoid =
-        Character:FindFirstChildOfClass("Humanoid")
+    local Root = Character:FindFirstChild("HumanoidRootPart")
 
-    -- Desativa estados que podem causar queda durante o teleporte
-    if Humanoid then
-        Humanoid:SetStateEnabled(
-            Enum.HumanoidStateType.FallingDown,
-            false
-        )
-
-        Humanoid:SetStateEnabled(
-            Enum.HumanoidStateType.Falling,
-            false
-        )
+    if not Root then
+        return nil
     end
 
-    for Tentativa = 1, TENTATIVAS_TELEPORTE do
+    local MelhorArea = nil
+    local MenorDistancia = math.huge
 
-        if not Root or not Root.Parent then
-            return false
-        end
+    for _, AreaInfo in ipairs(Areas) do
 
-        -- Zera a velocidade para evitar que o personagem
-        -- continue se movendo depois do teleporte
-        if ZERA_VELOCIDADE then
+        local Area = EncontrarArea(AreaInfo.Nome)
 
-            Root.Velocity = Vector3.zero
+        if Area then
 
-            pcall(function()
-                Root.AssemblyLinearVelocity = Vector3.zero
-                Root.AssemblyAngularVelocity = Vector3.zero
-            end)
+            local Posicao = PegarPosicao(Area)
 
-        end
+            if Posicao then
 
-        local Destino =
-            Posicao
-            + Vector3.new(0, ALTURA_DO_TELEPORTE, 0)
+                local Distancia =
+                    (Root.Position - Posicao.Position).Magnitude
 
-        Root.CFrame = Destino
+                if Distancia < MenorDistancia then
 
-        task.wait(0.08)
+                    MenorDistancia = Distancia
+                    MelhorArea = AreaInfo.Nome
 
-        if Root and Root.Parent then
-
-            local Distancia =
-                (Root.Position - Destino.Position).Magnitude
-
-            if Distancia < 10 then
-
-                if Humanoid then
-                    Humanoid:SetStateEnabled(
-                        Enum.HumanoidStateType.FallingDown,
-                        true
-                    )
-
-                    Humanoid:SetStateEnabled(
-                        Enum.HumanoidStateType.Falling,
-                        true
-                    )
                 end
-
-                return true
             end
         end
     end
 
-    if Humanoid then
-        Humanoid:SetStateEnabled(
-            Enum.HumanoidStateType.FallingDown,
-            true
-        )
-
-        Humanoid:SetStateEnabled(
-            Enum.HumanoidStateType.Falling,
-            true
-        )
-    end
-
-    return false
+    return MelhorArea
 end
 
 --==================================================
--- MONTAR ROTA
+-- CRIAR ROTA
 --==================================================
 
-local function CriarRota()
+local function CriarRota(Destino)
+
+    local Atual = DetectarAreaAtual()
+
+    local IndiceAtual = nil
+    local IndiceDestino = nil
+
+    for Index, Area in ipairs(Areas) do
+
+        if Area.Nome == Atual then
+            IndiceAtual = Index
+        end
+
+        if Area.Nome == Destino then
+            IndiceDestino = Index
+        end
+    end
+
+    if not IndiceDestino then
+        return {}
+    end
+
+    -- Se já estiver no destino,
+    -- começa pela próxima área.
+    if IndiceAtual == IndiceDestino then
+
+        IndiceAtual = IndiceAtual + 1
+
+        if IndiceAtual > #Areas then
+            IndiceAtual = 1
+        end
+    end
 
     local Rota = {}
 
-    for ID = 0, 12 do
+    --==================================================
+    -- ANGELS DEMONS
+    --==================================================
 
-        local Nome = BiomasDoJogo[ID]
+    if Destino == "AngelsDemons" then
 
-        if Nome then
+        table.insert(Rota, Areas[IndiceDestino])
 
-            local Area = EncontrarArea(Nome)
+        return Rota
+    end
 
-            if Area then
+    --==================================================
+    -- CAMINHO NORMAL
+    --==================================================
 
-                local Ponto =
-                    EncontrarPontoDaArea(Area)
+    if IndiceAtual and IndiceAtual < IndiceDestino then
 
-                if Ponto then
+        for I = IndiceAtual + 1, IndiceDestino do
+            table.insert(Rota, Areas[I])
+        end
 
-                    table.insert(Rota, {
-                        ID = ID,
-                        Nome = Nome,
-                        Area = Area,
-                        CFrame = Ponto
-                    })
+    elseif IndiceAtual and IndiceAtual > IndiceDestino then
 
-                else
+        for I = IndiceAtual - 1, IndiceDestino, -1 do
+            table.insert(Rota, Areas[I])
+        end
 
-                    warn(
-                        "Seraphim-Hub: Área encontrada, mas sem ponto:",
-                        Nome
-                    )
-                end
+    else
 
-            else
-
-                warn(
-                    "Seraphim-Hub: Área não encontrada:",
-                    Nome
-                )
-            end
+        for I = 1, IndiceDestino do
+            table.insert(Rota, Areas[I])
         end
     end
 
@@ -401,283 +413,110 @@ local function CriarRota()
 end
 
 --==================================================
--- EXECUTAR ROTA
+-- TELEPORTE
 --==================================================
 
 local Executando = false
 
-local function ExecutarRota()
+local function TeleportarParaArea(AreaInfo)
+
+    local Character = Player.Character
+
+    if not Character then
+        return false
+    end
+
+    local Root = Character:FindFirstChild("HumanoidRootPart")
+
+    if not Root then
+        return false
+    end
+
+    local Area = EncontrarArea(AreaInfo.Nome)
+
+    if not Area then
+        warn("Área não encontrada:", AreaInfo.Nome)
+        return false
+    end
+
+    local Posicao = PegarPosicao(Area)
+
+    if not Posicao then
+        warn("Não foi possível obter posição:", AreaInfo.Nome)
+        return false
+    end
+
+    Root.CFrame =
+        Posicao + Vector3.new(0, Altura, 0)
+
+    return true
+end
+
+--==================================================
+-- EXECUTAR
+--==================================================
+
+local function Executar()
 
     if Executando then
         return
     end
 
-    local Character = Player.Character
+    if not AreaSelecionada then
 
-    if not Character then
-        Status.Text = "Personagem não encontrado!"
+        Status.Text = "Escolha uma área!"
+
         return
     end
 
-    local Root =
-        Character:FindFirstChild("HumanoidRootPart")
-
-    if not Root then
-        Status.Text = "HumanoidRootPart não encontrado!"
-        return
-    end
-
-    local Rota = CriarRota()
+    local Rota = CriarRota(AreaSelecionada)
 
     if #Rota == 0 then
 
-        Status.Text = "Nenhuma área encontrada!"
-
-        warn(
-            "Seraphim-Hub: Nenhuma área foi encontrada."
-        )
-
+        Status.Text = "Rota vazia!"
         return
     end
 
     Executando = true
 
-    --==================================================
-    -- PERCORRER ÁREAS
-    --==================================================
-
-    for Numero, Destino in ipairs(Rota) do
+    for Index, AreaInfo in ipairs(Rota) do
 
         if not Executando then
             break
         end
 
-        if Player.Character ~= Character then
-            break
-        end
-
-        local NovoRoot =
-            Character:FindFirstChild("HumanoidRootPart")
-
-        if not NovoRoot then
-            break
-        end
-
         Status.Text =
-            Destino.Nome
+            AreaInfo.Display
             .. "  "
-            .. Numero
+            .. Index
             .. "/"
             .. #Rota
 
-        Teleportar(
-            NovoRoot,
-            Destino.CFrame
-        )
+        TeleportarParaArea(AreaInfo)
 
-        task.wait(TEMPO_ENTRE_AREAS)
+        task.wait(TempoEntreAreas)
     end
 
-    --==================================================
-    -- ESPERA NO FINAL
-    --==================================================
-
-    if Executando
-    and Player.Character == Character then
-
-        Status.Text =
-            "Final da rota: "
-            .. TEMPO_NO_FINAL
-            .. "s"
-
-        task.wait(TEMPO_NO_FINAL)
-
-        -- Não retorna para a posição inicial.
-        -- Permanece na última área.
-    end
-
-    Status.Text = "Aguardando..."
+    Status.Text = "Destino alcançado!"
     Executando = false
 end
 
---==================================================
--- JANELA DA LISTA
---==================================================
-
-local ListaFrame = Instance.new("Frame")
-ListaFrame.Name = "ListaFrame"
-ListaFrame.Size = UDim2.fromOffset(210, 300)
-ListaFrame.Position = UDim2.new(
-    0.5,
-    120,
-    0.5,
-    -150
-)
-ListaFrame.BackgroundColor3 = Color3.fromRGB(15, 18, 25)
-ListaFrame.BorderSizePixel = 0
-ListaFrame.Visible = false
-ListaFrame.Parent = ScreenGui
-
-local ListaStroke = Instance.new("UIStroke")
-ListaStroke.Color = Color3.fromRGB(100, 200, 255)
-ListaStroke.Thickness = 2
-ListaStroke.Parent = ListaFrame
-
-local ListaFrameCorner = Instance.new("UICorner")
-ListaFrameCorner.CornerRadius = UDim.new(0, 9)
-ListaFrameCorner.Parent = ListaFrame
-
---==================================================
--- TÍTULO DA LISTA
---==================================================
-
-local ListaTitle = Instance.new("TextLabel")
-ListaTitle.Size = UDim2.new(1, -10, 0, 35)
-ListaTitle.Position = UDim2.fromOffset(5, 0)
-ListaTitle.BackgroundTransparency = 1
-ListaTitle.Text = "📍 Áreas"
-ListaTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-ListaTitle.TextSize = 14
-ListaTitle.Font = Enum.Font.GothamBold
-ListaTitle.Parent = ListaFrame
-
---==================================================
--- SCROLL DA LISTA
---==================================================
-
-local Lista = Instance.new("ScrollingFrame")
-Lista.Size = UDim2.new(1, -12, 1, -43)
-Lista.Position = UDim2.fromOffset(6, 38)
-Lista.BackgroundTransparency = 1
-Lista.BorderSizePixel = 0
-Lista.ScrollBarThickness = 4
-Lista.CanvasSize = UDim2.new(0, 0, 0, 0)
-Lista.Parent = ListaFrame
-
-local Layout = Instance.new("UIListLayout")
-Layout.Padding = UDim.new(0, 5)
-Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-Layout.Parent = Lista
-
---==================================================
--- CRIAR BOTÕES DA LISTA
---==================================================
-
-for ID = 0, 12 do
-
-    local Nome = BiomasDoJogo[ID]
-
-    local Botao = Instance.new("TextButton")
-
-    Botao.Name = Nome
-    Botao.Size = UDim2.new(1, -6, 0, 34)
-    Botao.BackgroundColor3 = Color3.fromRGB(25, 30, 40)
-    Botao.BorderSizePixel = 0
-    Botao.Text = Nome
-    Botao.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Botao.TextSize = 11
-    Botao.Font = Enum.Font.GothamBold
-    Botao.Parent = Lista
-
-    local BotaoCorner = Instance.new("UICorner")
-    BotaoCorner.CornerRadius = UDim.new(0, 6)
-    BotaoCorner.Parent = Botao
-
-    Botao.MouseButton1Click:Connect(function()
-
-        local Character = Player.Character
-
-        if not Character then
-            return
-        end
-
-        local Root =
-            Character:FindFirstChild("HumanoidRootPart")
-
-        if not Root then
-            return
-        end
-
-        local Area = EncontrarArea(Nome)
-
-        if not Area then
-            Status.Text = Nome .. " não encontrada!"
-            return
-        end
-
-        local Ponto =
-            EncontrarPontoDaArea(Area)
-
-        if not Ponto then
-            Status.Text = Nome .. " sem ponto!"
-            return
-        end
-
-        Status.Text = "Teleportando: " .. Nome
-
-        Teleportar(
-            Root,
-            Ponto
-        )
-
-        Status.Text = "Área: " .. Nome
-    end)
-end
-
-Lista.CanvasSize = UDim2.new(
-    0,
-    0,
-    0,
-    Layout.AbsoluteContentSize.Y + 5
-)
-
-Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-
-    Lista.CanvasSize = UDim2.new(
-        0,
-        0,
-        0,
-        Layout.AbsoluteContentSize.Y + 5
-    )
-end)
-
---==================================================
--- ABRIR / FECHAR LISTA
---==================================================
-
-ListaButton.MouseButton1Click:Connect(function()
-
-    ListaFrame.Visible =
-        not ListaFrame.Visible
-end)
-
---==================================================
--- BOTÃO
---==================================================
-
 StopButton.MouseButton1Click:Connect(function()
 
-    if Executando then
-        return
-    end
+    task.spawn(Executar)
 
-    task.spawn(function()
-        ExecutarRota()
-    end)
 end)
 
 --==================================================
--- FECHAR PAINEL
+-- FECHAR
 --==================================================
 
 CloseButton.MouseButton1Click:Connect(function()
-
     Main.Visible = false
-    ListaFrame.Visible = false
 end)
 
 --==================================================
--- ARRASTAR PAINEL
+-- ARRASTAR
 --==================================================
 
 local Dragging = false
