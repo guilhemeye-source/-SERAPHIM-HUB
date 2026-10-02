@@ -1,5 +1,5 @@
 --// Seraphim-Hub
---// Sistema de áreas + linha branca + teleporte direto
+--// Sistema de áreas + linha branca + teleporte direto + God Mode
 --// Para uso no seu próprio jogo no Roblox Studio
 
 local Players = game:GetService("Players")
@@ -11,7 +11,7 @@ local Player = Players.LocalPlayer
 -- CONFIGURAÇÃO
 --==================================================
 
-local DistanciaDoChao = 0.05
+local DistanciaDoChao = 3
 local TempoEntreAreas = 0.8
 
 local Areas = {
@@ -29,6 +29,45 @@ local Areas = {
     {Nome = "TitanTemple",   Display = "Titan Temple"},
     {Nome = "AngelsDemons",  Display = "Angels & Demons"}
 }
+
+--==================================================
+-- GOD MODE (sempre ativo)
+--==================================================
+
+local function AplicarGodMode(Character)
+    if not Character then return end
+
+    local Antigo = Character:FindFirstChild("SeraphimGodMode")
+    if Antigo then Antigo:Destroy() end
+
+    local FF = Instance.new("ForceField")
+    FF.Name = "SeraphimGodMode"
+    FF.Visible = false
+    FF.Parent = Character
+end
+
+if Player.Character then
+    AplicarGodMode(Player.Character)
+end
+
+Player.CharacterAdded:Connect(function(Char)
+    task.wait(0.5)
+    AplicarGodMode(Char)
+end)
+
+-- Monitor de vida (backup caso ForceField não segure)
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        local Char = Player.Character
+        if Char then
+            local Hum = Char:FindFirstChildOfClass("Humanoid")
+            if Hum and Hum.Health < Hum.MaxHealth then
+                Hum.Health = Hum.MaxHealth
+            end
+        end
+    end
+end)
 
 --==================================================
 -- GUI
@@ -539,43 +578,60 @@ end
 local function TeleportarParaArea(AreaInfo)
 
     local Character = Player.Character
+    if not Character then return false end
 
-    if not Character then
-        return false
-    end
-
-    local Root = Character:FindFirstChild(
-        "HumanoidRootPart"
-    )
-
-    if not Root then
-        return false
-    end
+    local Root = Character:FindFirstChild("HumanoidRootPart")
+    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+    if not Root or not Humanoid then return false end
 
     local Area = EncontrarArea(AreaInfo.Nome)
-
     if not Area then
-
-        warn(
-            "Seraphim-Hub: área não encontrada:",
-            AreaInfo.Nome
-        )
-
+        warn("Seraphim-Hub: área não encontrada:", AreaInfo.Nome)
         return false
     end
 
     local Posicao = PegarPosicaoSegura(Area)
+    if not Posicao then return false end
 
-    if not Posicao then
-        return false
-    end
+    -- 1) Trava o Humanoid
+    Humanoid.WalkSpeed = 0
+    Humanoid.JumpPower = 0
+    Humanoid.JumpHeight = 0
 
-    -- Teleporte direto para o chão.
-    Root.CFrame = Posicao
-
-    -- Remove impulso do teleporte.
+    -- 2) Para completamente o personagem
     Root.AssemblyLinearVelocity = Vector3.zero
     Root.AssemblyAngularVelocity = Vector3.zero
+
+    -- 3) Desativa colisão das partes por um instante
+    local PartesSalvas = {}
+    for _, Part in ipairs(Character:GetDescendants()) do
+        if Part:IsA("BasePart") and Part.CanCollide then
+            PartesSalvas[Part] = true
+            Part.CanCollide = false
+        end
+    end
+
+    -- 4) Teleporta o MODEL inteiro (não só o Root)
+    Character:PivotTo(Posicao)
+
+    -- 5) Zera velocidade de novo depois do pivot
+    Root.AssemblyLinearVelocity = Vector3.zero
+    Root.AssemblyAngularVelocity = Vector3.zero
+
+    -- 6) Espera um frame pra física assentar
+    task.wait(0.15)
+
+    -- 7) Restaura colisão
+    for Part in pairs(PartesSalvas) do
+        if Part.Parent then
+            Part.CanCollide = true
+        end
+    end
+
+    -- 8) Libera o Humanoid
+    Humanoid.WalkSpeed = 16
+    Humanoid.JumpPower = 50
+    Humanoid.JumpHeight = 7.2
 
     return true
 end
@@ -741,4 +797,4 @@ end)
 -- INÍCIO
 --==================================================
 
-print("Seraphim-Hub carregado!")
+print("Seraphim-Hub carregado! (God Mode ativo)")
